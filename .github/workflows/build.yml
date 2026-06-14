@@ -20,34 +20,32 @@ jobs:
             os: windows-latest
             configurePreset: win-x64
             buildPreset: build-win-release
-            shell: bash
             buildDir: build/win-x64
           - id: linux-x86_64
             os: ubuntu-latest
             configurePreset: linux-x64
             buildPreset: build-linux-release
-            shell: bash
             buildDir: build/linux-x64
           - id: macosx-x86_64
             os: macos-13
             configurePreset: macos-x64
             buildPreset: build-macos-x64-release
-            shell: bash
             buildDir: build/macos-x64
           - id: macosx-arm64
             os: macos-latest
             configurePreset: macos-arm64
             buildPreset: build-macos-arm64-release
-            shell: bash
             buildDir: build/macos-arm64
           - id: android-arm64
             os: ubuntu-latest
             configurePreset: android-arm64
             buildPreset: build-android-release
-            shell: bash
             buildDir: build/android-arm64
 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v4
@@ -80,21 +78,17 @@ jobs:
           ndk-version: r27c
 
       - name: Configure CMake
-        shell: ${{ matrix.shell }}
         env:
           ANDROID_NDK: ${{ env.ANDROID_NDK }}
         run: cmake --preset ${{ matrix.configurePreset }}
 
       - name: Build native library
-        shell: ${{ matrix.shell }}
         run: cmake --build --preset ${{ matrix.buildPreset }}
 
       - name: Install native artifacts into cppbuild
-        shell: ${{ matrix.shell }}
         run: bash ./cppbuild.sh ${{ matrix.id }} ${{ matrix.buildDir }}
 
       - name: Build JavaCPP artifact
-        shell: ${{ matrix.shell }}
         run: mvn -B -Dmaven.repo.local=${{ github.workspace }}/.m2/repository -Djavacpp.platform=${{ matrix.id }} install
 
       - name: Upload Maven outputs
