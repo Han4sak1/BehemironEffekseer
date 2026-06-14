@@ -17,7 +17,11 @@
         <javacpp.moduleId>behemiron-effekseer</javacpp.moduleId>
         <javacpp.packageName>${project.artifactId}</javacpp.packageName>
         <javacpp.resourcePrefix>com/behemiron/engine/external/effect/effekseer/internal/raw</javacpp.resourcePrefix>
-        <javacpp.platform.nativeOutputPath>${javacpp.resourcePrefix}/${javacpp.platform}</javacpp.platform.nativeOutputPath>
+        <javacpp.platform.library.path>${javacpp.resourcePrefix}/${javacpp.platform}</javacpp.platform.library.path>
+        <javacpp.platform.nativeOutputPath>${javacpp.platform.library.path}</javacpp.platform.nativeOutputPath>
+        <javacpp.platform.root/>
+        <javacpp.platform.compiler/>
+        <javacpp.platform.extension/>
         <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
     </properties>
 
@@ -44,6 +48,24 @@
                 <version>${javacpp.version}</version>
                 <configuration>
                     <properties>${javacpp.platform.properties}</properties>
+                    <propertyKeysAndValues>
+                        <property>
+                            <name>platform.root</name>
+                            <value>${javacpp.platform.root}</value>
+                        </property>
+                        <property>
+                            <name>platform.compiler</name>
+                            <value>${javacpp.platform.compiler}</value>
+                        </property>
+                        <property>
+                            <name>platform.extension</name>
+                            <value>${javacpp.platform.extension}</value>
+                        </property>
+                        <property>
+                            <name>platform.library.path</name>
+                            <value>${javacpp.platform.library.path}</value>
+                        </property>
+                    </propertyKeysAndValues>
                     <classPaths>
                         <classPath>${project.build.outputDirectory}</classPath>
                     </classPaths>
@@ -54,6 +76,12 @@
                         <linkPath>${basedir}/cppbuild/${javacpp.platform}/lib/</linkPath>
                         <linkPath>${basedir}/cppbuild/${javacpp.platform}/bin/</linkPath>
                     </linkPaths>
+                    <preloadPaths>
+                        <preloadPath>${basedir}/cppbuild/${javacpp.platform}/bin/</preloadPath>
+                    </preloadPaths>
+                    <resourcePaths>
+                        <resourcePath>${basedir}/cppbuild/${javacpp.platform}/</resourcePath>
+                    </resourcePaths>
                     <buildResources>
                         <buildResource>/${javacpp.platform.library.path}/</buildResource>
                     </buildResources>

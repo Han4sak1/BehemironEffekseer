@@ -168,8 +168,8 @@ jobs:
             "-Djavacpp.platform=${{ matrix.id }}"
           )
           if [[ "${{ matrix.id }}" == "android-arm64" ]]; then
-            mvn_args+=("-Dorg.bytedeco.javacpp.platform.root=${ANDROID_NDK}/")
-            mvn_args+=("-Dorg.bytedeco.javacpp.platform.compiler=${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
+            mvn_args+=("-Djavacpp.platform.root=${ANDROID_NDK}/")
+            mvn_args+=("-Djavacpp.platform.compiler=toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
           fi
           mvn "${mvn_args[@]}" process-classes jar:jar@platform-jar
           classifier_jar="$(find target -maxdepth 1 -type f -name "*-${{ matrix.id }}.jar" -print -quit)"
@@ -177,6 +177,24 @@ jobs:
             echo "classifier jar for ${{ matrix.id }} was not produced"
             exit 1
           fi
+          resource_dir="com/behemiron/engine/external/effect/effekseer/internal/raw/${{ matrix.id }}"
+          case "${{ matrix.id }}" in
+            windows-x86_64)
+              core_native="behemiron_effekseer.dll"
+              ;;
+            linux-x86_64|android-arm64)
+              core_native="libbehemiron_effekseer.so"
+              ;;
+            macosx-x86_64|macosx-arm64)
+              core_native="libbehemiron_effekseer.dylib"
+              ;;
+            *)
+              echo "unsupported platform verification target: ${{ matrix.id }}"
+              exit 1
+              ;;
+          esac
+          jar tf "$classifier_jar" | grep -F "${resource_dir}/jniBehemironEffekseer"
+          jar tf "$classifier_jar" | grep -F "${resource_dir}/${core_native}"
           mvn "${mvn_args[@]}" install:install-file -Dfile="$classifier_jar" -DpomFile=pom.xml -Dclassifier=${{ matrix.id }}
 
       - name: Verify platform Maven slice
