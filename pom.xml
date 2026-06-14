@@ -14,6 +14,8 @@
         <maven.compiler.release>17</maven.compiler.release>
         <javacpp.version>1.5.13</javacpp.version>
         <javacpp.moduleId>behemiron-effekseer</javacpp.moduleId>
+        <javacpp.packageName>${project.artifactId}</javacpp.packageName>
+        <javacpp.platform.nativeOutputPath>org/bytedeco/${javacpp.packageName}/${javacpp.platform}</javacpp.platform.nativeOutputPath>
     </properties>
 
     <dependencies>
@@ -64,8 +66,16 @@
                 <executions>
                     <execution>
                         <id>javacpp-compiler</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
                         <configuration>
+                            <outputDirectory>${project.build.directory}/native/${javacpp.platform.nativeOutputPath}</outputDirectory>
                             <classOrPackageName>com.behemiron.engine.external.effect.effekseer.**</classOrPackageName>
+                            <copyLibs>true</copyLibs>
+                            <copyResources>true</copyResources>
+                            <configDirectory>${project.build.directory}/native/META-INF/native-image/${javacpp.platform}/</configDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -73,6 +83,29 @@
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.4.2</version>
+                <executions>
+                    <execution>
+                        <id>platform-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>${javacpp.platform}</classifier>
+                            <skipIfEmpty>true</skipIfEmpty>
+                            <includes>
+                                <include>${javacpp.platform.nativeOutputPath}/</include>
+                                <include>META-INF/native-image/${javacpp.platform}/</include>
+                            </includes>
+                            <classesDirectory>${project.build.directory}/native</classesDirectory>
+                            <excludes>
+                                <exclude>org/bytedeco/${javacpp.packageName}/windows-*/*.exp</exclude>
+                                <exclude>org/bytedeco/${javacpp.packageName}/windows-*/*.lib</exclude>
+                                <exclude>org/bytedeco/${javacpp.packageName}/windows-*/*.obj</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
