@@ -71,8 +71,7 @@ jobs:
         if: matrix.id == 'windows-x86_64' || matrix.id == 'linux-x86_64' || matrix.id == 'macosx-x86_64' || matrix.id == 'macosx-arm64'
         uses: jakoch/install-vulkan-sdk-action@v1.5.5
         with:
-          # This should work when building with MoltenVK on MacOS
-          vulkan_version: 1.3.275.0
+          vulkan_version: 1.3.290.0
 
       # Fixing issue of Missing <cstdint> in LLGI/thirdparty/glslang when building on Windows
       - name: Export Windows CXXFLAGS

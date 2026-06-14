@@ -19,9 +19,9 @@ set(USE_OSM OFF CACHE BOOL "" FORCE)
 add_subdirectory(Effekseer)
 add_subdirectory(Core)
 
-# Fixing issue of exact on-disk path casing for Linux builds.
+# Match the vendored LLGI path casing so Linux can resolve it.
 set(LLGI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Effekseer/Dev/Cpp/3rdParty/LLGI/src)
-# Fixing issue of incorrect Vulkan platform definition in EffekseerRendererVulkan.Base.Pre.h and EffekseerRendererVulkan.Base.h
+# Vulkan surface macros must be visible before vendored headers include vulkan.h.
 set(BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS)
 if(BUILD_VULKAN)
   if(APPLE)
@@ -48,7 +48,6 @@ foreach(LLGI_CONSUMER
   endif()
 endforeach()
 
-# Fixing issue of incorrect Vulkan platform definition in EffekseerRendererVulkan.Base.Pre.h and EffekseerRendererVulkan.Base.h
 if(BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS)
   foreach(VULKAN_TARGET
           LLGI
