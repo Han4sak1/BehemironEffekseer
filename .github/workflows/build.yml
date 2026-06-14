@@ -60,7 +60,7 @@ jobs:
             buildPreset: build-linux-release
             buildDir: build/linux-x64
           - id: macosx-x86_64
-            os: macos-13
+            os: macos-15-intel
             configurePreset: macos-x64
             buildPreset: build-macos-x64-release
             buildDir: build/macos-x64
@@ -148,8 +148,8 @@ jobs:
             -Djavacpp.platform=${{ matrix.id }}
           )
           if [[ "${{ matrix.id }}" == "android-arm64" ]]; then
-            mvn_args+=("-Dplatform.root=${ANDROID_NDK}/")
-            mvn_args+=("-Dplatform.compiler=toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
+            mvn_args+=("-Dorg.bytedeco.javacpp.platform.root=${ANDROID_NDK}/")
+            mvn_args+=("-Dorg.bytedeco.javacpp.platform.compiler=toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
           fi
           mvn "${mvn_args[@]}" process-classes jar:jar@platform-jar
           classifier_jar="$(find target -maxdepth 1 -type f -name "*-${{ matrix.id }}.jar" -print -quit)"

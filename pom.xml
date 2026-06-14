@@ -16,7 +16,8 @@
         <javacpp.compiler.skip>false</javacpp.compiler.skip>
         <javacpp.moduleId>behemiron-effekseer</javacpp.moduleId>
         <javacpp.packageName>${project.artifactId}</javacpp.packageName>
-        <javacpp.platform.nativeOutputPath>org/bytedeco/${javacpp.packageName}/${javacpp.platform}</javacpp.platform.nativeOutputPath>
+        <javacpp.resourcePrefix>com/behemiron/engine/external/effect/effekseer/internal/raw</javacpp.resourcePrefix>
+        <javacpp.platform.nativeOutputPath>${javacpp.resourcePrefix}/${javacpp.platform}</javacpp.platform.nativeOutputPath>
         <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
     </properties>
 
@@ -57,7 +58,7 @@
                         <buildResource>/${javacpp.platform.library.path}/</buildResource>
                     </buildResources>
                     <includeResources>
-                        <includeResource>/org/bytedeco/${javacpp.moduleId}/include/</includeResource>
+                        <includeResource>/${javacpp.resourcePrefix}/include/</includeResource>
                         <includeResource>/${javacpp.platform.library.path}/include/</includeResource>
                     </includeResources>
                     <linkResources>
@@ -103,9 +104,9 @@
                             </includes>
                             <classesDirectory>${project.build.directory}/native</classesDirectory>
                             <excludes>
-                                <exclude>org/bytedeco/${javacpp.packageName}/windows-*/*.exp</exclude>
-                                <exclude>org/bytedeco/${javacpp.packageName}/windows-*/*.lib</exclude>
-                                <exclude>org/bytedeco/${javacpp.packageName}/windows-*/*.obj</exclude>
+                                <exclude>${javacpp.resourcePrefix}/windows-*/*.exp</exclude>
+                                <exclude>${javacpp.resourcePrefix}/windows-*/*.lib</exclude>
+                                <exclude>${javacpp.resourcePrefix}/windows-*/*.obj</exclude>
                             </excludes>
                         </configuration>
                     </execution>
