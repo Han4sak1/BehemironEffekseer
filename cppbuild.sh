@@ -13,7 +13,7 @@ INSTALL_DIR="$ROOT_DIR/cppbuild/$PLATFORM"
 
 mkdir -p "$INSTALL_DIR/include" "$INSTALL_DIR/lib" "$INSTALL_DIR/bin"
 
-cp "$ROOT_DIR/src/cpp/Core/BehemironEffekseerCAPI.h" "$INSTALL_DIR/include/"
+find "$ROOT_DIR/src/cpp/Core" -maxdepth 1 -type f -name 'BehemironEffekseer*.h' -exec cp {} "$INSTALL_DIR/include/" \;
 
 case "$PLATFORM" in
   windows-x86_64)

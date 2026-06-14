@@ -16,6 +16,9 @@
         <javacpp.moduleId>behemiron-effekseer</javacpp.moduleId>
         <javacpp.packageName>${project.artifactId}</javacpp.packageName>
         <javacpp.platform.nativeOutputPath>org/bytedeco/${javacpp.packageName}/${javacpp.platform}</javacpp.platform.nativeOutputPath>
+        <javacpp.platform.root></javacpp.platform.root>
+        <javacpp.platform.compiler></javacpp.platform.compiler>
+        <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
     </properties>
 
     <dependencies>
@@ -40,6 +43,17 @@
                 <artifactId>javacpp</artifactId>
                 <version>${javacpp.version}</version>
                 <configuration>
+                    <properties>${javacpp.platform.properties}</properties>
+                    <propertyKeysAndValues>
+                        <property>
+                            <name>platform.root</name>
+                            <value>${javacpp.platform.root}</value>
+                        </property>
+                        <property>
+                            <name>platform.compiler</name>
+                            <value>${javacpp.platform.compiler}</value>
+                        </property>
+                    </propertyKeysAndValues>
                     <classPaths>
                         <classPath>${project.build.outputDirectory}</classPath>
                     </classPaths>
@@ -72,7 +86,7 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/native/${javacpp.platform.nativeOutputPath}</outputDirectory>
-                            <classOrPackageName>com.behemiron.engine.external.effect.effekseer.**</classOrPackageName>
+                            <classOrPackageName>com.behemiron.engine.external.effect.effekseer.internal.raw.**</classOrPackageName>
                             <copyLibs>true</copyLibs>
                             <copyResources>true</copyResources>
                             <configDirectory>${project.build.directory}/native/META-INF/native-image/${javacpp.platform}/</configDirectory>
@@ -109,4 +123,22 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>javacpp-platform-android-arm64</id>
+            <activation>
+                <property>
+                    <name>javacpp.platform</name>
+                    <value>android-arm64</value>
+                </property>
+            </activation>
+            <properties>
+                <javacpp.platform.nativeOutputPath>${javacpp.platform.library.path}</javacpp.platform.nativeOutputPath>
+                <javacpp.platform>android-arm64</javacpp.platform>
+                <javacpp.platform.root>${user.home}/Android/android-ndk/</javacpp.platform.root>
+                <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
+            </properties>
+        </profile>
+    </profiles>
 </project>
