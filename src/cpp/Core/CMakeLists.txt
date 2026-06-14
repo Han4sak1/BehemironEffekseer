@@ -43,6 +43,27 @@ if(BUILD_GL)
     PUBLIC
     BEHEMIRON_EFFEKSEER_HAS_GL=1
   )
+  if(USE_OPENGLES2)
+    target_compile_definitions(
+      EffekseerCore
+      PUBLIC
+      __EFFEKSEER_RENDERER_GLES2__
+    )
+  endif()
+  if(USE_OPENGLES3)
+    target_compile_definitions(
+      EffekseerCore
+      PUBLIC
+      __EFFEKSEER_RENDERER_GLES3__
+    )
+  endif()
+  if(USE_OPENGL3)
+    target_compile_definitions(
+      EffekseerCore
+      PUBLIC
+      __EFFEKSEER_RENDERER_GL3__
+    )
+  endif()
 endif()
 
 if(BUILD_VULKAN)
