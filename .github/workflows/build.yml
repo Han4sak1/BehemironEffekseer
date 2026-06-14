@@ -171,41 +171,57 @@ jobs:
             mvn_args+=("-Djavacpp.platform.root=${ANDROID_NDK}/")
             mvn_args+=("-Djavacpp.platform.compiler=toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
           fi
-          mvn "${mvn_args[@]}" process-classes jar:jar@platform-jar
-          classifier_jar="$(find target -maxdepth 1 -type f -name "*-${{ matrix.id }}.jar" -print -quit)"
-          if [[ -z "$classifier_jar" ]]; then
-            echo "classifier jar for ${{ matrix.id }} was not produced"
-            exit 1
-          fi
-          echo "Produced classifier jar: $classifier_jar"
+          mvn "${mvn_args[@]}" process-classes
           resource_dir="com/behemiron/engine/external/effect/effekseer/internal/raw/${{ matrix.id }}"
           case "${{ matrix.id }}" in
             windows-x86_64)
-              core_native="behemiron_effekseer.dll"
+              jni_native="jniBehemironEffekseer.dll"
+              core_native_entry="behemiron_effekseer.dll"
+              core_native_source="cppbuild/${{ matrix.id }}/bin/behemiron_effekseer.dll"
+              core_native_target="target/native/${resource_dir}/${core_native_entry}"
               ;;
             linux-x86_64|android-arm64)
-              core_native="libbehemiron_effekseer.so"
+              jni_native="libjniBehemironEffekseer.so"
+              core_native_entry="libbehemiron_effekseer.so"
+              core_native_source="cppbuild/${{ matrix.id }}/lib/libbehemiron_effekseer.so"
+              core_native_target="target/native/${resource_dir}/${core_native_entry}"
               ;;
             macosx-x86_64|macosx-arm64)
-              core_native="libbehemiron_effekseer.dylib"
+              jni_native="libjniBehemironEffekseer.dylib"
+              core_native_entry="libbehemiron_effekseer.dylib"
+              core_native_source="cppbuild/${{ matrix.id }}/lib/libbehemiron_effekseer.dylib"
+              core_native_target="target/native/${resource_dir}/${core_native_entry}"
               ;;
             *)
               echo "unsupported platform verification target: ${{ matrix.id }}"
               exit 1
               ;;
           esac
+          if [[ ! -f "$core_native_source" ]]; then
+            echo "Expected core native library at $core_native_source, but it was not found"
+            exit 1
+          fi
+          mkdir -p "$(dirname "$core_native_target")"
+          cp "$core_native_source" "$core_native_target"
+          mvn "${mvn_args[@]}" jar:jar@platform-jar
+          classifier_jar="$(find target -maxdepth 1 -type f -name "*-${{ matrix.id }}.jar" -print -quit)"
+          if [[ -z "$classifier_jar" ]]; then
+            echo "classifier jar for ${{ matrix.id }} was not produced"
+            exit 1
+          fi
+          echo "Produced classifier jar: $classifier_jar"
           jar_listing="$(mktemp)"
           jar tf "$classifier_jar" | tee "$jar_listing"
 
-          if ! grep -Fq "${resource_dir}/jniBehemironEffekseer" "$jar_listing"; then
+          if ! grep -Fq "${resource_dir}/${jni_native}" "$jar_listing"; then
             echo "Expected generated JNI library under ${resource_dir}, but it was not found in:"
             cat "$jar_listing"
             rm -f "$jar_listing"
             exit 1
           fi
 
-          if ! grep -Fq "${resource_dir}/${core_native}" "$jar_listing"; then
-            echo "Expected core native library ${core_native} under ${resource_dir}, but it was not found in:"
+          if ! grep -Fq "${resource_dir}/${core_native_entry}" "$jar_listing"; then
+            echo "Expected core native library ${core_native_entry} under ${resource_dir}, but it was not found in:"
             cat "$jar_listing"
             rm -f "$jar_listing"
             exit 1
