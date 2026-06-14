@@ -73,13 +73,18 @@ jobs:
 
       - name: Set up Android NDK
         if: matrix.id == 'android-arm64'
+        id: setup-ndk
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r27c
 
+      - name: Export Android NDK environment
+        if: matrix.id == 'android-arm64'
+        run: |
+          echo "ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+
       - name: Configure CMake
-        env:
-          ANDROID_NDK: ${{ env.ANDROID_NDK }}
         run: cmake --preset ${{ matrix.configurePreset }}
 
       - name: Build native library
