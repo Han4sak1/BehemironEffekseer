@@ -61,14 +61,14 @@ jobs:
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake libegl1-mesa-dev libgles2-mesa-dev libgl-dev
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake libegl1-mesa-dev libgles2-mesa-dev libgl-dev libx11-dev libx11-xcb-dev libxcb1-dev libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: brew install ninja cmake
 
       - name: Install Vulkan SDK
-        if: matrix.id != 'android-arm64'
+        if: matrix.id == 'windows-x86_64' || matrix.id == 'linux-x86_64'
         uses: jakoch/install-vulkan-sdk-action@v1.5.5
 
       - name: Set up Android NDK
