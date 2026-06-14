@@ -13,6 +13,9 @@ import org.bytedeco.javacpp.annotation.Properties;
 @Properties(inherit = BehemironEffekseerPreset.class)
 public abstract class BehemironEffekseerCollisionCallbackNative extends FunctionPointer {
 
+    /*
+      加载当前平台的 Native 库。
+     */
     static {
         Loader.load();
     }

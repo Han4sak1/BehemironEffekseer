@@ -1,7 +1,7 @@
 package com.behemiron.engine.external.effect.effekseer.backend.vk;
 
-import com.behemiron.engine.external.effect.effekseer.runtime.EffekseerManager;
 import com.behemiron.engine.external.effect.effekseer.internal.raw.vk.BehemironEffekseerVKNative;
+import com.behemiron.engine.external.effect.effekseer.runtime.EffekseerManager;
 
 /**
  * 在通用 manager 基础上补充 Vulkan 专属命令缓冲和图像绑定能力。

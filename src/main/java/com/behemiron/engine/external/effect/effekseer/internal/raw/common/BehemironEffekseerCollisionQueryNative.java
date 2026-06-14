@@ -3,7 +3,6 @@ package com.behemiron.engine.external.effect.effekseer.internal.raw.common;
 import com.behemiron.engine.external.effect.effekseer.internal.presets.BehemironEffekseerPreset;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.Pointer;
-import org.bytedeco.javacpp.annotation.Cast;
 import org.bytedeco.javacpp.annotation.Name;
 import org.bytedeco.javacpp.annotation.Properties;
 
@@ -14,6 +13,9 @@ import org.bytedeco.javacpp.annotation.Properties;
 @Properties(inherit = BehemironEffekseerPreset.class)
 public class BehemironEffekseerCollisionQueryNative extends Pointer {
 
+    /*
+      加载当前平台的 Native 库。
+     */
     static {
         Loader.load();
     }

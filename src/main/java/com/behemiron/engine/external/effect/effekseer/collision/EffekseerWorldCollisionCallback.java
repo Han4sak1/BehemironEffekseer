@@ -1,8 +1,5 @@
 package com.behemiron.engine.external.effect.effekseer.collision;
 
-import com.behemiron.engine.external.effect.effekseer.collision.EffekseerCollisionHit;
-import com.behemiron.engine.external.effect.effekseer.collision.EffekseerCollisionQuery;
-
 /**
  * 为 Effekseer 提供世界碰撞查询能力。
  */

@@ -1,11 +1,7 @@
 package com.behemiron.engine.external.effect.effekseer.internal.raw.common;
 
 import com.behemiron.engine.external.effect.effekseer.internal.presets.BehemironEffekseerPreset;
-import org.bytedeco.javacpp.FloatPointer;
-import org.bytedeco.javacpp.IntPointer;
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.Pointer;
-import org.bytedeco.javacpp.BytePointer;
+import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.annotation.Cast;
 import org.bytedeco.javacpp.annotation.Name;
 import org.bytedeco.javacpp.annotation.Properties;

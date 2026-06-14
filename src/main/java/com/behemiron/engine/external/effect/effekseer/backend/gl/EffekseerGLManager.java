@@ -1,7 +1,7 @@
 package com.behemiron.engine.external.effect.effekseer.backend.gl;
 
-import com.behemiron.engine.external.effect.effekseer.runtime.EffekseerManager;
 import com.behemiron.engine.external.effect.effekseer.internal.raw.gl.BehemironEffekseerGLNative;
+import com.behemiron.engine.external.effect.effekseer.runtime.EffekseerManager;
 
 /**
  * 在通用 manager 基础上补充 OpenGL 专属资源绑定能力。

@@ -1,7 +1,5 @@
 package com.behemiron.engine.external.effect.effekseer.logging;
 
-import com.behemiron.engine.external.effect.effekseer.logging.EffekseerLogLevel;
-
 /**
  * 用于接收 Native 层日志。
  */

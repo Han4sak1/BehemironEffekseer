@@ -13,6 +13,9 @@ import org.bytedeco.javacpp.annotation.Properties;
 @Properties(inherit = BehemironEffekseerPreset.class)
 public class BehemironEffekseerBatchPlayItemNative extends Pointer {
 
+    /*
+      加载当前平台的 Native 库。
+     */
     static {
         Loader.load();
     }
@@ -34,6 +37,7 @@ public class BehemironEffekseerBatchPlayItemNative extends Pointer {
     private native void allocateArray(long size);
 
     @Override
+    @SuppressWarnings("unchecked")
     public BehemironEffekseerBatchPlayItemNative position(long position) {
         return (BehemironEffekseerBatchPlayItemNative) super.position(position);
     }
