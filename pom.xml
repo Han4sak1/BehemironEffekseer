@@ -13,11 +13,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
         <javacpp.version>1.5.13</javacpp.version>
+        <javacpp.compiler.skip>false</javacpp.compiler.skip>
         <javacpp.moduleId>behemiron-effekseer</javacpp.moduleId>
         <javacpp.packageName>${project.artifactId}</javacpp.packageName>
         <javacpp.platform.nativeOutputPath>org/bytedeco/${javacpp.packageName}/${javacpp.platform}</javacpp.platform.nativeOutputPath>
-        <javacpp.platform.root></javacpp.platform.root>
-        <javacpp.platform.compiler></javacpp.platform.compiler>
         <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
     </properties>
 
@@ -44,16 +43,6 @@
                 <version>${javacpp.version}</version>
                 <configuration>
                     <properties>${javacpp.platform.properties}</properties>
-                    <propertyKeysAndValues>
-                        <property>
-                            <name>platform.root</name>
-                            <value>${javacpp.platform.root}</value>
-                        </property>
-                        <property>
-                            <name>platform.compiler</name>
-                            <value>${javacpp.platform.compiler}</value>
-                        </property>
-                    </propertyKeysAndValues>
                     <classPaths>
                         <classPath>${project.build.outputDirectory}</classPath>
                     </classPaths>
@@ -86,6 +75,7 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}/native/${javacpp.platform.nativeOutputPath}</outputDirectory>
+                            <skip>${javacpp.compiler.skip}</skip>
                             <classOrPackageName>com.behemiron.engine.external.effect.effekseer.internal.raw.**</classOrPackageName>
                             <copyLibs>true</copyLibs>
                             <copyResources>true</copyResources>
@@ -108,8 +98,8 @@
                             <classifier>${javacpp.platform}</classifier>
                             <skipIfEmpty>true</skipIfEmpty>
                             <includes>
-                                <include>${javacpp.platform.nativeOutputPath}/</include>
-                                <include>META-INF/native-image/${javacpp.platform}/</include>
+                                <include>${javacpp.platform.nativeOutputPath}/**</include>
+                                <include>META-INF/native-image/${javacpp.platform}/**</include>
                             </includes>
                             <classesDirectory>${project.build.directory}/native</classesDirectory>
                             <excludes>
@@ -136,7 +126,6 @@
             <properties>
                 <javacpp.platform.nativeOutputPath>${javacpp.platform.library.path}</javacpp.platform.nativeOutputPath>
                 <javacpp.platform>android-arm64</javacpp.platform>
-                <javacpp.platform.root>${user.home}/Android/android-ndk/</javacpp.platform.root>
                 <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
             </properties>
         </profile>

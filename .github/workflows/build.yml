@@ -11,7 +11,40 @@ on:
       - published
 
 jobs:
-  build:
+  base:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build base Java artifact
+        run: mvn -B -Dmaven.repo.local=${{ github.workspace }}/.m2/repository -Djavacpp.compiler.skip=true install
+
+      - name: Upload base Maven outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-base
+          path: |
+            target/*.jar
+
+      - name: Upload base Maven slice
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2-base
+          path: .m2/repository/com/behemiron/engine/behemiron-effekseer
+
+  build-platform:
     strategy:
       fail-fast: false
       matrix:
@@ -107,7 +140,7 @@ jobs:
       - name: Install native artifacts into cppbuild
         run: bash ./cppbuild.sh ${{ matrix.id }} ${{ matrix.buildDir }}
 
-      - name: Build JavaCPP artifact
+      - name: Build JavaCPP classifier artifact
         run: |
           mvn_args=(
             -B
@@ -115,19 +148,25 @@ jobs:
             -Djavacpp.platform=${{ matrix.id }}
           )
           if [[ "${{ matrix.id }}" == "android-arm64" ]]; then
-            mvn_args+=("-Djavacpp.platform.root=${ANDROID_NDK}/")
-            mvn_args+=("-Djavacpp.platform.compiler=toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
+            mvn_args+=("-Dplatform.root=${ANDROID_NDK}/")
+            mvn_args+=("-Dplatform.compiler=toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
           fi
-          mvn "${mvn_args[@]}" install
+          mvn "${mvn_args[@]}" process-classes jar:jar@platform-jar
+          classifier_jar="$(find target -maxdepth 1 -type f -name "*-${{ matrix.id }}.jar" -print -quit)"
+          if [[ -z "$classifier_jar" ]]; then
+            echo "classifier jar for ${{ matrix.id }} was not produced"
+            exit 1
+          fi
+          mvn "${mvn_args[@]}" install:install-file -Dfile="$classifier_jar" -DpomFile=pom.xml -Dclassifier=${{ matrix.id }}
 
-      - name: Upload Maven outputs
+      - name: Upload platform Maven outputs
         uses: actions/upload-artifact@v4
         with:
           name: maven-${{ matrix.id }}
           path: |
-            target/*.jar
+            target/*-${{ matrix.id }}.jar
 
-      - name: Upload local Maven slice
+      - name: Upload platform Maven slice
         uses: actions/upload-artifact@v4
         with:
           name: m2-${{ matrix.id }}
@@ -135,7 +174,8 @@ jobs:
 
   platform-bundle:
     needs:
-      - build
+      - base
+      - build-platform
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
