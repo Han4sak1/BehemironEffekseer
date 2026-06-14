@@ -108,9 +108,9 @@ public:
                                       float v10,
                                       float v11) const;
 
-    void DrawBack(int layer = 1) const;
+    void DrawBack(int layer = 0) const;
 
-    void DrawFront(int layer = 1) const;
+    void DrawFront(int layer = 0) const;
 
     void SetLayer(int handle, int layer) const;
 

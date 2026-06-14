@@ -126,8 +126,8 @@ namespace {
         drawParameter.ViewProjectionMatrix = renderer->GetCameraProjectionMatrix();
         drawParameter.CameraPosition = renderer->GetCameraPosition();
         drawParameter.CameraFrontDirection = renderer->GetCameraFrontDirection();
-        drawParameter.CameraCullingMask = 0;
-        if (layer >= 0 && layer < Effekseer::Manager::LayerCount) {
+        drawParameter.CameraCullingMask = 1;
+        if (layer > 0 && layer < Effekseer::Manager::LayerCount) {
             drawParameter.CameraCullingMask = 1 << layer;
         }
         return drawParameter;
@@ -451,7 +451,12 @@ void EffekseerManagerCore::DrawBack(const int layer) const {
         return;
     }
 
+    if (!renderer_->BeginRendering()) {
+        return;
+    }
+
     manager_->DrawBack(MakeLayerDrawParameter(renderer_, layer));
+    renderer_->EndRendering();
 }
 
 void EffekseerManagerCore::DrawFront(const int layer) const {
@@ -459,7 +464,12 @@ void EffekseerManagerCore::DrawFront(const int layer) const {
         return;
     }
 
+    if (!renderer_->BeginRendering()) {
+        return;
+    }
+
     manager_->DrawFront(MakeLayerDrawParameter(renderer_, layer));
+    renderer_->EndRendering();
 }
 
 void EffekseerManagerCore::SetLayer(const int handle, const int layer) const {
