@@ -1,0 +1,7 @@
+# Temporary
+build/
+.vs/
+cppbuild/
+target/
+.idea/
+.m2/

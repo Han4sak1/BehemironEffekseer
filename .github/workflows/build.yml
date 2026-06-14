@@ -1,0 +1,143 @@
+name: build
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+  release:
+    types:
+      - published
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: windows-x86_64
+            os: windows-latest
+            configurePreset: win-x64
+            buildPreset: build-win-release
+            shell: bash
+            buildDir: build/win-x64
+          - id: linux-x86_64
+            os: ubuntu-latest
+            configurePreset: linux-x64
+            buildPreset: build-linux-release
+            shell: bash
+            buildDir: build/linux-x64
+          - id: macosx-x86_64
+            os: macos-13
+            configurePreset: macos-x64
+            buildPreset: build-macos-x64-release
+            shell: bash
+            buildDir: build/macos-x64
+          - id: macosx-arm64
+            os: macos-latest
+            configurePreset: macos-arm64
+            buildPreset: build-macos-arm64-release
+            shell: bash
+            buildDir: build/macos-arm64
+          - id: android-arm64
+            os: ubuntu-latest
+            configurePreset: android-arm64
+            buildPreset: build-android-release
+            shell: bash
+            buildDir: build/android-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build cmake libegl1-mesa-dev libgles2-mesa-dev libgl-dev
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install ninja cmake
+
+      - name: Install Vulkan SDK
+        if: matrix.id != 'android-arm64'
+        uses: jakoch/install-vulkan-sdk-action@v1.5.5
+
+      - name: Set up Android NDK
+        if: matrix.id == 'android-arm64'
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27c
+
+      - name: Configure CMake
+        shell: ${{ matrix.shell }}
+        env:
+          ANDROID_NDK: ${{ env.ANDROID_NDK }}
+        run: cmake --preset ${{ matrix.configurePreset }}
+
+      - name: Build native library
+        shell: ${{ matrix.shell }}
+        run: cmake --build --preset ${{ matrix.buildPreset }}
+
+      - name: Install native artifacts into cppbuild
+        shell: ${{ matrix.shell }}
+        run: bash ./cppbuild.sh ${{ matrix.id }} ${{ matrix.buildDir }}
+
+      - name: Build JavaCPP artifact
+        shell: ${{ matrix.shell }}
+        run: mvn -B -Dmaven.repo.local=${{ github.workspace }}/.m2/repository -Djavacpp.platform=${{ matrix.id }} install
+
+      - name: Upload Maven outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-${{ matrix.id }}
+          path: |
+            target/*.jar
+
+      - name: Upload local Maven slice
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2-${{ matrix.id }}
+          path: .m2/repository/com/behemiron/engine/behemiron-effekseer
+
+  platform-bundle:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Download local Maven slices
+        uses: actions/download-artifact@v4
+        with:
+          pattern: m2-*
+          merge-multiple: true
+          path: .m2/repository/com/behemiron/engine
+
+      - name: Build platform pom
+        run: mvn -B -Dmaven.repo.local=${{ github.workspace }}/.m2/repository -f platform/pom.xml install -DskipTests
+
+      - name: Upload platform Maven slice
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2-platform
+          path: .m2/repository/com/behemiron/engine/behemiron-effekseer-platform

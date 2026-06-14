@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.behemiron.engine</groupId>
+    <artifactId>behemiron-effekseer</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <name>Behemiron Effekseer JavaCPP Preset</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.release>17</maven.compiler.release>
+        <javacpp.version>1.5.13</javacpp.version>
+        <javacpp.moduleId>behemiron-effekseer</javacpp.moduleId>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp</artifactId>
+            <version>${javacpp.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.bytedeco</groupId>
+                <artifactId>javacpp</artifactId>
+                <version>${javacpp.version}</version>
+                <configuration>
+                    <classPaths>
+                        <classPath>${project.build.outputDirectory}</classPath>
+                    </classPaths>
+                    <includePaths>
+                        <includePath>${basedir}/cppbuild/${javacpp.platform}/include/</includePath>
+                    </includePaths>
+                    <linkPaths>
+                        <linkPath>${basedir}/cppbuild/${javacpp.platform}/lib/</linkPath>
+                        <linkPath>${basedir}/cppbuild/${javacpp.platform}/bin/</linkPath>
+                    </linkPaths>
+                    <buildResources>
+                        <buildResource>/${javacpp.platform.library.path}/</buildResource>
+                    </buildResources>
+                    <includeResources>
+                        <includeResource>/org/bytedeco/${javacpp.moduleId}/include/</includeResource>
+                        <includeResource>/${javacpp.platform.library.path}/include/</includeResource>
+                    </includeResources>
+                    <linkResources>
+                        <linkResource>/${javacpp.platform.library.path}/</linkResource>
+                        <linkResource>/${javacpp.platform.library.path}/lib/</linkResource>
+                        <linkResource>/${javacpp.platform.library.path}/bin/</linkResource>
+                    </linkResources>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>javacpp-compiler</id>
+                        <configuration>
+                            <classOrPackageName>com.behemiron.engine.external.effect.effekseer.**</classOrPackageName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
