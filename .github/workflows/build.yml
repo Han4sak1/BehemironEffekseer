@@ -59,6 +59,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Set up MSVC developer command prompt
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Select Windows MSVC toolchain
+        if: runner.os == 'Windows'
+        run: |
+          echo "CC=cl" >> "$GITHUB_ENV"
+          echo "CXX=cl" >> "$GITHUB_ENV"
+
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ninja-build cmake libegl1-mesa-dev libgles2-mesa-dev libgl-dev libx11-dev libx11-xcb-dev libxcb1-dev libxrandr-dev libxi-dev libxcursor-dev libxinerama-dev
@@ -72,11 +84,6 @@ jobs:
         uses: jakoch/install-vulkan-sdk-action@v1.5.5
         with:
           vulkan_version: 1.3.290.0
-
-      # Fixing issue of Missing <cstdint> in LLGI/thirdparty/glslang when building on Windows
-      - name: Export Windows CXXFLAGS
-        if: runner.os == 'Windows'
-        run: echo "CXXFLAGS=${CXXFLAGS:+$CXXFLAGS }-include cstdint" >> "$GITHUB_ENV"
 
       - name: Set up Android NDK
         if: matrix.id == 'android-arm64'

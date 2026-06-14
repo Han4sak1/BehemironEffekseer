@@ -21,7 +21,6 @@ add_subdirectory(Core)
 
 # Match the vendored LLGI path casing so Linux can resolve it.
 set(LLGI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Effekseer/Dev/Cpp/3rdParty/LLGI/src)
-# Vulkan surface macros must be visible before vendored headers include vulkan.h.
 set(BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS)
 if(BUILD_VULKAN)
   if(APPLE)
@@ -48,10 +47,11 @@ foreach(LLGI_CONSUMER
   endif()
 endforeach()
 
+# EffekseerRendererVulkan's public headers include vulkan.h before their own
+# platform setup on non-Windows targets, so add the required surface defines
+# only to the targets whose translation units include those headers directly.
 if(BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS)
   foreach(VULKAN_TARGET
-          LLGI
-          EffekseerRendererLLGI
           EffekseerRendererVulkan
           EffekseerCore)
     if(TARGET ${VULKAN_TARGET})
