@@ -108,7 +108,7 @@ jobs:
         run: |
           repo_local="${PWD}/.m2/repository"
           if [[ "${RUNNER_OS}" == "Windows" ]]; then
-            repo_local="$(cygpath -aw "$repo_local")"
+            repo_local="$(cygpath -am "$repo_local")"
           fi
           echo "repo_local=$repo_local" >> "$GITHUB_OUTPUT"
 
