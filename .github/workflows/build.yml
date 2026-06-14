@@ -28,8 +28,19 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Resolve Maven local repository path
+        id: base-maven-repo
+        run: |
+          repo_local="${PWD}/.m2/repository"
+          echo "repo_local=$repo_local" >> "$GITHUB_OUTPUT"
+
       - name: Build base Java artifact
-        run: mvn -B -Dmaven.repo.local=${{ github.workspace }}/.m2/repository -Djavacpp.compiler.skip=true install
+        run: mvn -B -Dmaven.repo.local="${{ steps.base-maven-repo.outputs.repo_local }}" -Djavacpp.compiler.skip=true install
+
+      - name: Verify base Maven slice
+        run: |
+          test -d .m2/repository/com/behemiron/engine/behemiron-effekseer
+          find .m2/repository/com/behemiron/engine/behemiron-effekseer -maxdepth 2 -type f | sort
 
       - name: Upload base Maven outputs
         uses: actions/upload-artifact@v4
@@ -92,6 +103,15 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Resolve Maven local repository path
+        id: platform-maven-repo
+        run: |
+          repo_local="${PWD}/.m2/repository"
+          if [[ "${RUNNER_OS}" == "Windows" ]]; then
+            repo_local="$(cygpath -aw "$repo_local")"
+          fi
+          echo "repo_local=$repo_local" >> "$GITHUB_OUTPUT"
+
       - name: Set up MSVC developer command prompt
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
@@ -144,7 +164,7 @@ jobs:
         run: |
           mvn_args=(
             -B
-            -Dmaven.repo.local=${{ github.workspace }}/.m2/repository
+            -Dmaven.repo.local=${{ steps.platform-maven-repo.outputs.repo_local }}
             -Djavacpp.platform=${{ matrix.id }}
           )
           if [[ "${{ matrix.id }}" == "android-arm64" ]]; then
@@ -158,6 +178,11 @@ jobs:
             exit 1
           fi
           mvn "${mvn_args[@]}" install:install-file -Dfile="$classifier_jar" -DpomFile=pom.xml -Dclassifier=${{ matrix.id }}
+
+      - name: Verify platform Maven slice
+        run: |
+          test -d .m2/repository/com/behemiron/engine/behemiron-effekseer
+          find .m2/repository/com/behemiron/engine/behemiron-effekseer -maxdepth 2 -type f | sort
 
       - name: Upload platform Maven outputs
         uses: actions/upload-artifact@v4
@@ -189,6 +214,12 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Resolve Maven local repository path
+        id: bundle-maven-repo
+        run: |
+          repo_local="${PWD}/.m2/repository"
+          echo "repo_local=$repo_local" >> "$GITHUB_OUTPUT"
+
       - name: Download local Maven slices
         uses: actions/download-artifact@v4
         with:
@@ -197,7 +228,7 @@ jobs:
           path: .m2/repository/com/behemiron/engine
 
       - name: Build platform pom
-        run: mvn -B -Dmaven.repo.local=${{ github.workspace }}/.m2/repository -f platform/pom.xml install -DskipTests
+        run: mvn -B -Dmaven.repo.local="${{ steps.bundle-maven-repo.outputs.repo_local }}" -f platform/pom.xml install -DskipTests
 
       - name: Upload platform Maven slice
         uses: actions/upload-artifact@v4
