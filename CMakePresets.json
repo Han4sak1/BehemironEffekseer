@@ -31,17 +31,6 @@
       }
     },
     {
-      "name": "macos-base",
-      "hidden": true,
-      "inherits": "base",
-      "cacheVariables": {
-        "BUILD_GL": "ON",
-        "BUILD_VULKAN": "OFF",
-        "USE_OPENGL3": "ON",
-        "USE_OPENGLES3": "OFF"
-      }
-    },
-    {
       "name": "win-x64",
       "inherits": "desktop-base",
       "cacheVariables": {
@@ -57,7 +46,7 @@
     },
     {
       "name": "macos-universal",
-      "inherits": "macos-base",
+      "inherits": "desktop-base",
       "cacheVariables": {
         "CMAKE_SYSTEM_NAME": "Darwin",
         "CMAKE_OSX_ARCHITECTURES": "x86_64;arm64"
@@ -65,7 +54,7 @@
     },
     {
       "name": "macos-x64",
-      "inherits": "macos-base",
+      "inherits": "desktop-base",
       "cacheVariables": {
         "CMAKE_SYSTEM_NAME": "Darwin",
         "CMAKE_OSX_ARCHITECTURES": "x86_64"
@@ -73,7 +62,7 @@
     },
     {
       "name": "macos-arm64",
-      "inherits": "macos-base",
+      "inherits": "desktop-base",
       "cacheVariables": {
         "CMAKE_SYSTEM_NAME": "Darwin",
         "CMAKE_OSX_ARCHITECTURES": "arm64"

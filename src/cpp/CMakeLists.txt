@@ -19,7 +19,20 @@ set(USE_OSM OFF CACHE BOOL "" FORCE)
 add_subdirectory(Effekseer)
 add_subdirectory(Core)
 
+# Fixing issue of exact on-disk path casing for Linux builds.
 set(LLGI_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Effekseer/Dev/Cpp/3rdParty/LLGI/src)
+# Fixing issue of incorrect Vulkan platform definition in EffekseerRendererVulkan.Base.Pre.h and EffekseerRendererVulkan.Base.h
+set(BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS)
+if(BUILD_VULKAN)
+  if(APPLE)
+    list(APPEND BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS
+         VK_ENABLE_BETA_EXTENSIONS
+         VK_USE_PLATFORM_MACOS_MVK)
+  elseif(UNIX AND NOT ANDROID)
+    list(APPEND BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS
+         VK_USE_PLATFORM_XCB_KHR)
+  endif()
+endif()
 
 foreach(LLGI_CONSUMER
         EffekseerRendererLLGI
@@ -34,6 +47,23 @@ foreach(LLGI_CONSUMER
     )
   endif()
 endforeach()
+
+# Fixing issue of incorrect Vulkan platform definition in EffekseerRendererVulkan.Base.Pre.h and EffekseerRendererVulkan.Base.h
+if(BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS)
+  foreach(VULKAN_TARGET
+          LLGI
+          EffekseerRendererLLGI
+          EffekseerRendererVulkan
+          EffekseerCore)
+    if(TARGET ${VULKAN_TARGET})
+      target_compile_definitions(
+        ${VULKAN_TARGET}
+        PRIVATE
+        ${BEHEMIRON_EFFEKSEER_VULKAN_PLATFORM_DEFINITIONS}
+      )
+    endif()
+  endforeach()
+endif()
 
 add_library(BehemironEffekseerNative SHARED)
 

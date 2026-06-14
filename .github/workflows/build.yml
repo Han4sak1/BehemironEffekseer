@@ -68,8 +68,16 @@ jobs:
         run: brew install ninja cmake
 
       - name: Install Vulkan SDK
-        if: matrix.id == 'windows-x86_64' || matrix.id == 'linux-x86_64'
+        if: matrix.id == 'windows-x86_64' || matrix.id == 'linux-x86_64' || matrix.id == 'macosx-x86_64' || matrix.id == 'macosx-arm64'
         uses: jakoch/install-vulkan-sdk-action@v1.5.5
+        with:
+          # This should work when building with MoltenVK on MacOS
+          vulkan_version: 1.3.275.0
+
+      # Fixing issue of Missing <cstdint> in LLGI/thirdparty/glslang when building on Windows
+      - name: Export Windows CXXFLAGS
+        if: runner.os == 'Windows'
+        run: echo "CXXFLAGS=${CXXFLAGS:+$CXXFLAGS }-include cstdint" >> "$GITHUB_ENV"
 
       - name: Set up Android NDK
         if: matrix.id == 'android-arm64'
