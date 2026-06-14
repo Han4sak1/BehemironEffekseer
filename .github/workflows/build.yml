@@ -164,12 +164,12 @@ jobs:
         run: |
           mvn_args=(
             -B
-            -Dmaven.repo.local=${{ steps.platform-maven-repo.outputs.repo_local }}
-            -Djavacpp.platform=${{ matrix.id }}
+            "-Dmaven.repo.local=${{ steps.platform-maven-repo.outputs.repo_local }}"
+            "-Djavacpp.platform=${{ matrix.id }}"
           )
           if [[ "${{ matrix.id }}" == "android-arm64" ]]; then
             mvn_args+=("-Dorg.bytedeco.javacpp.platform.root=${ANDROID_NDK}/")
-            mvn_args+=("-Dorg.bytedeco.javacpp.platform.compiler=toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
+            mvn_args+=("-Dorg.bytedeco.javacpp.platform.compiler=${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++")
           fi
           mvn "${mvn_args[@]}" process-classes jar:jar@platform-jar
           classifier_jar="$(find target -maxdepth 1 -type f -name "*-${{ matrix.id }}.jar" -print -quit)"
@@ -235,3 +235,19 @@ jobs:
         with:
           name: m2-platform
           path: .m2/repository/com/behemiron/engine/behemiron-effekseer-platform
+
+  publish-maven-repository:
+    # 预留给未来发布到自有 Maven 仓库。
+    if: ${{ false }}
+    needs:
+      - platform-bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reserved publish job
+        run: |
+          echo "Reserved for future Maven repository publishing."
+          # TODO: 暂不启用
+          # 启用时的流程：
+          # 1. 下载 m2-base、各平台 classifier 的 m2 切片，以及 m2-platform artifacts
+          # 2. 生成 settings.xml 并注入仓库地址、用户名、密码等凭据
+          # 3. 使用 mvn deploy 或 deploy:deploy-file 推送到目标 Maven 仓库
