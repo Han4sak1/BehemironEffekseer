@@ -177,6 +177,7 @@ jobs:
             echo "classifier jar for ${{ matrix.id }} was not produced"
             exit 1
           fi
+          echo "Produced classifier jar: $classifier_jar"
           resource_dir="com/behemiron/engine/external/effect/effekseer/internal/raw/${{ matrix.id }}"
           case "${{ matrix.id }}" in
             windows-x86_64)
@@ -193,8 +194,24 @@ jobs:
               exit 1
               ;;
           esac
-          jar tf "$classifier_jar" | grep -F "${resource_dir}/jniBehemironEffekseer"
-          jar tf "$classifier_jar" | grep -F "${resource_dir}/${core_native}"
+          jar_listing="$(mktemp)"
+          jar tf "$classifier_jar" | tee "$jar_listing"
+
+          if ! grep -Fq "${resource_dir}/jniBehemironEffekseer" "$jar_listing"; then
+            echo "Expected generated JNI library under ${resource_dir}, but it was not found in:"
+            cat "$jar_listing"
+            rm -f "$jar_listing"
+            exit 1
+          fi
+
+          if ! grep -Fq "${resource_dir}/${core_native}" "$jar_listing"; then
+            echo "Expected core native library ${core_native} under ${resource_dir}, but it was not found in:"
+            cat "$jar_listing"
+            rm -f "$jar_listing"
+            exit 1
+          fi
+
+          rm -f "$jar_listing"
           mvn "${mvn_args[@]}" install:install-file -Dfile="$classifier_jar" -DpomFile=pom.xml -Dclassifier=${{ matrix.id }}
 
       - name: Verify platform Maven slice
