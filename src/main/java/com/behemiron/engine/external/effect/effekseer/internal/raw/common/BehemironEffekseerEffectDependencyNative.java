@@ -4,6 +4,7 @@ import com.behemiron.engine.external.effect.effekseer.internal.presets.Behemiron
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.ShortPointer;
+import org.bytedeco.javacpp.annotation.Cast;
 import org.bytedeco.javacpp.annotation.Name;
 import org.bytedeco.javacpp.annotation.Properties;
 
@@ -39,7 +40,7 @@ public class BehemironEffekseerEffectDependencyNative extends Pointer {
 
     public native BehemironEffekseerEffectDependencyNative slot(int value);
 
-    public native ShortPointer path_utf16();
+    public native @Cast("const uint16_t*") ShortPointer path_utf16();
 
-    public native BehemironEffekseerEffectDependencyNative path_utf16(ShortPointer value);
+    public native BehemironEffekseerEffectDependencyNative path_utf16(@Cast("const uint16_t*") ShortPointer value);
 }

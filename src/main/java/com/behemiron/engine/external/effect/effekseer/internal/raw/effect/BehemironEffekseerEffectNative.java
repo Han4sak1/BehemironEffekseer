@@ -54,7 +54,12 @@ public final class BehemironEffekseerEffectNative {
      * @return 是否加载成功
      */
     @Name("be_effekseer_effect_load")
-    public static native @Cast("int32_t") int effectLoad(Pointer handle, BytePointer data, @Cast("int32_t") int len, float magnification);
+    public static native @Cast("int32_t") int effectLoad(
+            Pointer handle,
+            @Cast("const uint8_t*") BytePointer data,
+            @Cast("int32_t") int len,
+            float magnification
+    );
 
     /**
      * 获取指定纹理槽位的路径。
@@ -65,7 +70,7 @@ public final class BehemironEffekseerEffectNative {
      * @return UTF-16 纹理路径指针
      */
     @Name("be_effekseer_effect_get_texture_path_utf16")
-    public static native ShortPointer effectGetTexturePathUtf16(
+    public static native @Cast("const uint16_t*") ShortPointer effectGetTexturePathUtf16(
             Pointer handle,
             @Cast("int32_t") int index,
             @Cast("int32_t") int textureType
@@ -94,7 +99,7 @@ public final class BehemironEffekseerEffectNative {
     @Name("be_effekseer_effect_load_texture")
     public static native @Cast("int32_t") int effectLoadTexture(
             Pointer handle,
-            BytePointer data,
+            @Cast("const uint8_t*") BytePointer data,
             @Cast("int32_t") int len,
             @Cast("int32_t") int index,
             @Cast("int32_t") int textureType
@@ -123,7 +128,7 @@ public final class BehemironEffekseerEffectNative {
      * @return UTF-16 模型路径指针
      */
     @Name("be_effekseer_effect_get_model_path_utf16")
-    public static native ShortPointer effectGetModelPathUtf16(Pointer handle, @Cast("int32_t") int index);
+    public static native @Cast("const uint16_t*") ShortPointer effectGetModelPathUtf16(Pointer handle, @Cast("int32_t") int index);
 
     /**
      * 获取模型资源数量。
@@ -146,7 +151,7 @@ public final class BehemironEffekseerEffectNative {
     @Name("be_effekseer_effect_load_model")
     public static native @Cast("int32_t") int effectLoadModel(
             Pointer handle,
-            BytePointer data,
+            @Cast("const uint8_t*") BytePointer data,
             @Cast("int32_t") int len,
             @Cast("int32_t") int index
     );
@@ -169,7 +174,7 @@ public final class BehemironEffekseerEffectNative {
      * @return UTF-16 材质路径指针
      */
     @Name("be_effekseer_effect_get_material_path_utf16")
-    public static native ShortPointer effectGetMaterialPathUtf16(Pointer handle, @Cast("int32_t") int index);
+    public static native @Cast("const uint16_t*") ShortPointer effectGetMaterialPathUtf16(Pointer handle, @Cast("int32_t") int index);
 
     /**
      * 获取材质资源数量。
@@ -192,7 +197,7 @@ public final class BehemironEffekseerEffectNative {
     @Name("be_effekseer_effect_load_material")
     public static native @Cast("int32_t") int effectLoadMaterial(
             Pointer handle,
-            BytePointer data,
+            @Cast("const uint8_t*") BytePointer data,
             @Cast("int32_t") int len,
             @Cast("int32_t") int index
     );
@@ -215,7 +220,7 @@ public final class BehemironEffekseerEffectNative {
      * @return UTF-16 曲线路径指针
      */
     @Name("be_effekseer_effect_get_curve_path_utf16")
-    public static native ShortPointer effectGetCurvePathUtf16(Pointer handle, @Cast("int32_t") int index);
+    public static native @Cast("const uint16_t*") ShortPointer effectGetCurvePathUtf16(Pointer handle, @Cast("int32_t") int index);
 
     /**
      * 获取曲线资源数量。
@@ -238,7 +243,7 @@ public final class BehemironEffekseerEffectNative {
     @Name("be_effekseer_effect_load_curve")
     public static native @Cast("int32_t") int effectLoadCurve(
             Pointer handle,
-            BytePointer data,
+            @Cast("const uint8_t*") BytePointer data,
             @Cast("int32_t") int len,
             @Cast("int32_t") int index
     );

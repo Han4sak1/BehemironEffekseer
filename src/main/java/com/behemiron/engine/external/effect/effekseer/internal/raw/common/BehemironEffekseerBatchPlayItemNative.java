@@ -3,6 +3,8 @@ package com.behemiron.engine.external.effect.effekseer.internal.raw.common;
 import com.behemiron.engine.external.effect.effekseer.internal.presets.BehemironEffekseerPreset;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.Pointer;
+import org.bytedeco.javacpp.annotation.ByRef;
+import org.bytedeco.javacpp.annotation.MemberGetter;
 import org.bytedeco.javacpp.annotation.Name;
 import org.bytedeco.javacpp.annotation.Properties;
 
@@ -39,12 +41,15 @@ public class BehemironEffekseerBatchPlayItemNative extends Pointer {
     @Override
     @SuppressWarnings("unchecked")
     public BehemironEffekseerBatchPlayItemNative position(long position) {
-        return (BehemironEffekseerBatchPlayItemNative) super.position(position);
+        return super.position(position);
     }
 
     public native Pointer effect_handle();
 
     public native BehemironEffekseerBatchPlayItemNative effect_handle(Pointer value);
 
-    public native @Name("options") BehemironEffekseerPlayOptionsNative options();
+    @MemberGetter
+    public native @ByRef BehemironEffekseerPlayOptionsNative options();
+
+    public native BehemironEffekseerBatchPlayItemNative options(BehemironEffekseerPlayOptionsNative setter);
 }

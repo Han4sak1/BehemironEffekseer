@@ -21,12 +21,19 @@ public abstract class BehemironEffekseerLogCallbackNative extends FunctionPointe
         Loader.load();
     }
 
-    protected BehemironEffekseerLogCallbackNative() {
+    public BehemironEffekseerLogCallbackNative(Pointer p) {
+        super(p);
     }
+
+    protected BehemironEffekseerLogCallbackNative() {
+        allocate();
+    }
+
+    private native void allocate();
 
     public abstract void call(
             @Cast("int32_t") int logType,
-            BytePointer message,
+            @Cast("const char*") BytePointer message,
             Pointer userData
     );
 }

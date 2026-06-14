@@ -5,6 +5,7 @@ import org.bytedeco.javacpp.FunctionPointer;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.annotation.Cast;
+import org.bytedeco.javacpp.annotation.Const;
 import org.bytedeco.javacpp.annotation.Properties;
 
 /**
@@ -20,11 +21,18 @@ public abstract class BehemironEffekseerCollisionCallbackNative extends Function
         Loader.load();
     }
 
+    public BehemironEffekseerCollisionCallbackNative(Pointer p) {
+        super(p);
+    }
+
     /**
      * 供 JavaCPP 运行时实例化。
      */
     protected BehemironEffekseerCollisionCallbackNative() {
+        allocate();
     }
+
+    private native void allocate();
 
     /**
      * 处理一次从 Effekseer 发起的世界碰撞查询。
@@ -35,7 +43,7 @@ public abstract class BehemironEffekseerCollisionCallbackNative extends Function
      * @return 非 0 表示命中
      */
     public abstract @Cast("int32_t") int call(
-            BehemironEffekseerCollisionQueryNative query,
+            @Const BehemironEffekseerCollisionQueryNative query,
             BehemironEffekseerCollisionHitNative hit,
             Pointer userData
     );

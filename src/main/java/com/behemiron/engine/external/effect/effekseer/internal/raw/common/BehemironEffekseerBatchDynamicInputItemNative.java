@@ -39,7 +39,7 @@ public class BehemironEffekseerBatchDynamicInputItemNative extends Pointer {
     @Override
     @SuppressWarnings("unchecked")
     public BehemironEffekseerBatchDynamicInputItemNative position(long position) {
-        return (BehemironEffekseerBatchDynamicInputItemNative) super.position(position);
+        return super.position(position);
     }
 
     public native int effect_handle();

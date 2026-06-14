@@ -3,6 +3,7 @@ package com.behemiron.engine.external.effect.effekseer.internal.raw.common;
 import com.behemiron.engine.external.effect.effekseer.internal.presets.BehemironEffekseerPreset;
 import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.annotation.Cast;
+import org.bytedeco.javacpp.annotation.Const;
 import org.bytedeco.javacpp.annotation.Name;
 import org.bytedeco.javacpp.annotation.Properties;
 
@@ -72,7 +73,7 @@ public final class BehemironEffekseerCommonNative {
      * @return 最近一次错误消息
      */
     @Name("be_effekseer_get_last_error")
-    public static native BytePointer getLastError();
+    public static native @Cast("const char*") BytePointer getLastError();
 
     /**
      * 清空最近一次错误消息。
@@ -174,7 +175,7 @@ public final class BehemironEffekseerCommonNative {
     public static native @Cast("int32_t") int managerPlayWithOptions(
             Pointer handle,
             Pointer effect,
-            BehemironEffekseerPlayOptionsNative options
+            @Const BehemironEffekseerPlayOptionsNative options
     );
 
     /**

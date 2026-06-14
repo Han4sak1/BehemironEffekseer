@@ -124,7 +124,6 @@
                 </property>
             </activation>
             <properties>
-                <javacpp.platform.nativeOutputPath>${javacpp.platform.library.path}</javacpp.platform.nativeOutputPath>
                 <javacpp.platform>android-arm64</javacpp.platform>
                 <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
             </properties>
