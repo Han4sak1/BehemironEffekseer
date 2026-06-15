@@ -271,12 +271,50 @@ jobs:
           repo_local="${PWD}/.m2/repository"
           echo "repo_local=$repo_local" >> "$GITHUB_OUTPUT"
 
-      - name: Download local Maven slices
+      - name: Download base and classifier jars
         uses: actions/download-artifact@v4
         with:
-          pattern: m2-*
+          pattern: maven-*
           merge-multiple: true
-          path: .m2/repository/com/behemiron/engine
+          path: target/prebuilt-artifacts
+
+      - name: Normalize prebuilt artifact layout
+        run: |
+          mkdir -p target/prebuilt-artifacts-flat
+          find target/prebuilt-artifacts -type f -name "*.jar" -exec cp {} target/prebuilt-artifacts-flat/ \;
+
+      - name: Install base and classifier jars into local Maven repository
+        run: |
+          project_version="$(sed -n 's#.*<version>\(.*\)</version>.*#\1#p' pom.xml | head -n 1)"
+          base_jar="target/prebuilt-artifacts-flat/behemiron-effekseer-${project_version}.jar"
+
+          if [[ ! -f "$base_jar" ]]; then
+            echo "Base jar not found: $base_jar"
+            find target/prebuilt-artifacts-flat -maxdepth 1 -type f | sort
+            exit 1
+          fi
+
+          mvn -B \
+            -Dmaven.repo.local="${{ steps.bundle-maven-repo.outputs.repo_local }}" \
+            install:install-file \
+            -Dfile="$base_jar" \
+            -DpomFile=pom.xml
+
+          for classifier in windows-x86_64 linux-x86_64 macosx-x86_64 macosx-arm64 android-arm64; do
+            classifier_jar="target/prebuilt-artifacts-flat/behemiron-effekseer-${project_version}-${classifier}.jar"
+            if [[ ! -f "$classifier_jar" ]]; then
+              echo "Classifier jar not found: $classifier_jar"
+              find target/prebuilt-artifacts-flat -maxdepth 1 -type f | sort
+              exit 1
+            fi
+
+            mvn -B \
+              -Dmaven.repo.local="${{ steps.bundle-maven-repo.outputs.repo_local }}" \
+              install:install-file \
+              -Dfile="$classifier_jar" \
+              -DpomFile=pom.xml \
+              -Dclassifier="${classifier}"
+          done
 
       - name: Build platform pom
         run: mvn -B -Dmaven.repo.local="${{ steps.bundle-maven-repo.outputs.repo_local }}" -f platform/pom.xml install -DskipTests
@@ -341,12 +379,38 @@ jobs:
           mkdir -p target/prebuilt-artifacts-flat
           find target/prebuilt-artifacts -type f -name "*.jar" -exec cp {} target/prebuilt-artifacts-flat/ \;
 
-      - name: Download local Maven slices
-        uses: actions/download-artifact@v4
-        with:
-          pattern: m2-*
-          merge-multiple: true
-          path: .m2/repository/com/behemiron/engine
+      - name: Install base and classifier jars into local Maven repository
+        run: |
+          project_version="$(sed -n 's#.*<version>\(.*\)</version>.*#\1#p' pom.xml | head -n 1)"
+          base_jar="target/prebuilt-artifacts-flat/behemiron-effekseer-${project_version}.jar"
+
+          if [[ ! -f "$base_jar" ]]; then
+            echo "Base jar not found: $base_jar"
+            find target/prebuilt-artifacts-flat -maxdepth 1 -type f | sort
+            exit 1
+          fi
+
+          mvn -B \
+            -Dmaven.repo.local="${{ steps.publish-maven-repo.outputs.repo_local }}" \
+            install:install-file \
+            -Dfile="$base_jar" \
+            -DpomFile=pom.xml
+
+          for classifier in windows-x86_64 linux-x86_64 macosx-x86_64 macosx-arm64 android-arm64; do
+            classifier_jar="target/prebuilt-artifacts-flat/behemiron-effekseer-${project_version}-${classifier}.jar"
+            if [[ ! -f "$classifier_jar" ]]; then
+              echo "Classifier jar not found: $classifier_jar"
+              find target/prebuilt-artifacts-flat -maxdepth 1 -type f | sort
+              exit 1
+            fi
+
+            mvn -B \
+              -Dmaven.repo.local="${{ steps.publish-maven-repo.outputs.repo_local }}" \
+              install:install-file \
+              -Dfile="$classifier_jar" \
+              -DpomFile=pom.xml \
+              -Dclassifier="${classifier}"
+          done
 
       - name: Detect snapshot version
         id: snapshot-version
@@ -438,12 +502,38 @@ jobs:
           mkdir -p target/prebuilt-artifacts-flat
           find target/prebuilt-artifacts -type f -name "*.jar" -exec cp {} target/prebuilt-artifacts-flat/ \;
 
-      - name: Download local Maven slices
-        uses: actions/download-artifact@v4
-        with:
-          pattern: m2-*
-          merge-multiple: true
-          path: .m2/repository/com/behemiron/engine
+      - name: Install base and classifier jars into local Maven repository
+        run: |
+          project_version="$(sed -n 's#.*<version>\(.*\)</version>.*#\1#p' pom.xml | head -n 1)"
+          base_jar="target/prebuilt-artifacts-flat/behemiron-effekseer-${project_version}.jar"
+
+          if [[ ! -f "$base_jar" ]]; then
+            echo "Base jar not found: $base_jar"
+            find target/prebuilt-artifacts-flat -maxdepth 1 -type f | sort
+            exit 1
+          fi
+
+          mvn -B \
+            -Dmaven.repo.local="${{ steps.publish-release-maven-repo.outputs.repo_local }}" \
+            install:install-file \
+            -Dfile="$base_jar" \
+            -DpomFile=pom.xml
+
+          for classifier in windows-x86_64 linux-x86_64 macosx-x86_64 macosx-arm64 android-arm64; do
+            classifier_jar="target/prebuilt-artifacts-flat/behemiron-effekseer-${project_version}-${classifier}.jar"
+            if [[ ! -f "$classifier_jar" ]]; then
+              echo "Classifier jar not found: $classifier_jar"
+              find target/prebuilt-artifacts-flat -maxdepth 1 -type f | sort
+              exit 1
+            fi
+
+            mvn -B \
+              -Dmaven.repo.local="${{ steps.publish-release-maven-repo.outputs.repo_local }}" \
+              install:install-file \
+              -Dfile="$classifier_jar" \
+              -DpomFile=pom.xml \
+              -Dclassifier="${classifier}"
+          done
 
       - name: Refuse snapshot version on release workflow
         run: |
