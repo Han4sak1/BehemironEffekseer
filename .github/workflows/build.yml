@@ -330,6 +330,10 @@ jobs:
     needs:
       - platform-bundle
     runs-on: ubuntu-latest
+    env:
+      MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -338,10 +342,7 @@ jobs:
 
       - name: Validate publish secrets
         env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           MAVEN_GPG_PRIVATE_KEY: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
           for secret_name in MAVEN_CENTRAL_USERNAME MAVEN_CENTRAL_PASSWORD MAVEN_GPG_PRIVATE_KEY MAVEN_GPG_PASSPHRASE; do
             if [[ -z "${!secret_name}" ]]; then
@@ -424,8 +425,6 @@ jobs:
 
       - name: Publish base artifact and classifier jars to Maven Central
         if: steps.snapshot-version.outputs.eligible == 'true'
-        env:
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
           mvn -B \
             -Dmaven.repo.local="${{ steps.publish-maven-repo.outputs.repo_local }}" \
@@ -438,8 +437,6 @@ jobs:
 
       - name: Publish platform bundle to Maven Central
         if: steps.snapshot-version.outputs.eligible == 'true'
-        env:
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
           mvn -B \
             -Dmaven.repo.local="${{ steps.publish-maven-repo.outputs.repo_local }}" \
@@ -453,6 +450,10 @@ jobs:
     needs:
       - platform-bundle
     runs-on: ubuntu-latest
+    env:
+      MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -461,10 +462,7 @@ jobs:
 
       - name: Validate publish secrets
         env:
-          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
-          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           MAVEN_GPG_PRIVATE_KEY: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
           for secret_name in MAVEN_CENTRAL_USERNAME MAVEN_CENTRAL_PASSWORD MAVEN_GPG_PRIVATE_KEY MAVEN_GPG_PASSPHRASE; do
             if [[ -z "${!secret_name}" ]]; then
@@ -543,8 +541,6 @@ jobs:
           fi
 
       - name: Publish base artifact and classifier jars to Maven Central
-        env:
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
           mvn -B \
             -Dmaven.repo.local="${{ steps.publish-release-maven-repo.outputs.repo_local }}" \
@@ -556,8 +552,6 @@ jobs:
             deploy
 
       - name: Publish platform bundle to Maven Central
-        env:
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         run: |
           mvn -B \
             -Dmaven.repo.local="${{ steps.publish-release-maven-repo.outputs.repo_local }}" \
