@@ -6,8 +6,33 @@
 
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>Behemiron Effekseer JavaCPP Preset</name>
+    <description>JavaCPP-based Java bindings for The Behemiron Project's Effekseer runtime.</description>
+    <url>https://github.com/Han4sak1/BehemironEffekseer</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>Han4sak1</id>
+            <name>Han4sak1</name>
+            <organization>Behemiron</organization>
+            <organizationUrl>https://github.com/Han4sak1</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/Han4sak1/BehemironEffekseer.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Han4sak1/BehemironEffekseer.git</developerConnection>
+        <url>https://github.com/Han4sak1/BehemironEffekseer</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -23,6 +48,8 @@
         <javacpp.platform.compiler/>
         <javacpp.platform.extension/>
         <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
+        <behemiron.prebuilt.directory>${project.build.directory}/prebuilt-artifacts</behemiron.prebuilt.directory>
+        <central.publishing.version>0.10.0</central.publishing.version>
     </properties>
 
     <dependencies>
@@ -114,29 +141,35 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.4.2</version>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
-                        <id>platform-jar</id>
+                        <id>attach-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
+                <configuration>
+                    <source>${maven.compiler.release}</source>
+                    <doclint>none</doclint>
+                    <failOnError>false</failOnError>
+                    <quiet>true</quiet>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
                         <phase>package</phase>
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                        <configuration>
-                            <classifier>${javacpp.platform}</classifier>
-                            <skipIfEmpty>true</skipIfEmpty>
-                            <includes>
-                                <include>${javacpp.platform.nativeOutputPath}/**</include>
-                                <include>META-INF/native-image/${javacpp.platform}/**</include>
-                            </includes>
-                            <classesDirectory>${project.build.directory}/native</classesDirectory>
-                            <excludes>
-                                <exclude>${javacpp.resourcePrefix}/windows-*/*.exp</exclude>
-                                <exclude>${javacpp.resourcePrefix}/windows-*/*.lib</exclude>
-                                <exclude>${javacpp.resourcePrefix}/windows-*/*.obj</exclude>
-                            </excludes>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -144,6 +177,45 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>javacpp-platform-artifact</id>
+            <activation>
+                <property>
+                    <name>javacpp.platform</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <version>3.4.2</version>
+                        <executions>
+                            <execution>
+                                <id>platform-jar</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>${javacpp.platform}</classifier>
+                                    <skipIfEmpty>true</skipIfEmpty>
+                                    <includes>
+                                        <include>${javacpp.platform.nativeOutputPath}/**</include>
+                                        <include>META-INF/native-image/${javacpp.platform}/**</include>
+                                    </includes>
+                                    <classesDirectory>${project.build.directory}/native</classesDirectory>
+                                    <excludes>
+                                        <exclude>${javacpp.resourcePrefix}/windows-*/*.exp</exclude>
+                                        <exclude>${javacpp.resourcePrefix}/windows-*/*.lib</exclude>
+                                        <exclude>${javacpp.resourcePrefix}/windows-*/*.obj</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>javacpp-platform-android-arm64</id>
             <activation>
@@ -156,6 +228,100 @@
                 <javacpp.platform>android-arm64</javacpp.platform>
                 <javacpp.platform.properties>${javacpp.platform}</javacpp.platform.properties>
             </properties>
+        </profile>
+        <profile>
+            <id>attach-prebuilt-classifiers</id>
+            <activation>
+                <property>
+                    <name>behemiron.attach.prebuilt.classifiers</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.6.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-prebuilt-classifier-jars</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>attach-artifact</goal>
+                                </goals>
+                                <configuration>
+                                    <artifacts>
+                                        <artifact>
+                                            <file>${behemiron.prebuilt.directory}/${project.artifactId}-${project.version}-windows-x86_64.jar</file>
+                                            <type>jar</type>
+                                            <classifier>windows-x86_64</classifier>
+                                        </artifact>
+                                        <artifact>
+                                            <file>${behemiron.prebuilt.directory}/${project.artifactId}-${project.version}-linux-x86_64.jar</file>
+                                            <type>jar</type>
+                                            <classifier>linux-x86_64</classifier>
+                                        </artifact>
+                                        <artifact>
+                                            <file>${behemiron.prebuilt.directory}/${project.artifactId}-${project.version}-macosx-x86_64.jar</file>
+                                            <type>jar</type>
+                                            <classifier>macosx-x86_64</classifier>
+                                        </artifact>
+                                        <artifact>
+                                            <file>${behemiron.prebuilt.directory}/${project.artifactId}-${project.version}-macosx-arm64.jar</file>
+                                            <type>jar</type>
+                                            <classifier>macosx-arm64</classifier>
+                                        </artifact>
+                                        <artifact>
+                                            <file>${behemiron.prebuilt.directory}/${project.artifactId}-${project.version}-android-arm64.jar</file>
+                                            <type>jar</type>
+                                            <classifier>android-arm64</classifier>
+                                        </artifact>
+                                    </artifacts>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>central-publish</id>
+            <activation>
+                <property>
+                    <name>behemiron.central.publish</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.8</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central.publishing.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

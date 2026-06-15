@@ -6,15 +6,46 @@
 
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer-platform</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
-    <name>Behemiron Effekseer Platform Bundle</name>
+    <version>0.1.0</version>
+    <name>Behemiron Engine Effekseer Platform Bundle</name>
+    <description>Platform aggregate artifact for The Behemiron Project's Effekseer JavaCPP bindings.</description>
+    <url>https://github.com/Han4sak1/BehemironEffekseer</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>Han4sak1</id>
+            <name>Han4sak1</name>
+            <organization>Behemiron</organization>
+            <organizationUrl>https://github.com/Han4sak1</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/Han4sak1/BehemironEffekseer.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Han4sak1/BehemironEffekseer.git</developerConnection>
+        <url>https://github.com/Han4sak1/BehemironEffekseer</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <javacpp.moduleId>behemiron-effekseer</javacpp.moduleId>
+        <javacpp.version>1.5.13</javacpp.version>
+        <central.publishing.version>0.10.0</central.publishing.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacpp-platform</artifactId>
+            <version>${javacpp.version}</version>
+        </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>${javacpp.moduleId}</artifactId>
@@ -51,4 +82,86 @@
             <classifier>android-arm64</classifier>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Class-Path>behemiron-effekseer.jar behemiron-effekseer-windows-x86_64.jar behemiron-effekseer-linux-x86_64.jar behemiron-effekseer-macosx-x86_64.jar behemiron-effekseer-macosx-arm64.jar behemiron-effekseer-android-arm64.jar</Class-Path>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>empty-javadoc-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>javadoc</classifier>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>empty-sources-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>sources</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>central-publish</id>
+            <activation>
+                <property>
+                    <name>behemiron.central.publish</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.8</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central.publishing.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                            <waitUntil>published</waitUntil>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
