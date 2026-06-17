@@ -8,7 +8,7 @@
 
 namespace {
 
-constexpr uint32_t kBehemironEffekseerAbiVersion = 2;
+constexpr uint32_t kBehemironEffekseerAbiVersion = 3;
 
 EffekseerTextureType ToTextureType(const int32_t type)
 {
@@ -115,8 +115,10 @@ uint32_t be_effekseer_get_feature_flags()
     flags |= BEHEMIRON_EFFEKSEER_FEATURE_TYPED_PLAY_OPTIONS;
     flags |= BEHEMIRON_EFFEKSEER_FEATURE_BATCH_API;
     flags |= BEHEMIRON_EFFEKSEER_FEATURE_DIAGNOSTICS;
+    flags |= BEHEMIRON_EFFEKSEER_FEATURE_OPENGL_FRAME_API;
 #ifdef __EFFEKSEER_BUILD_VULKAN__
     flags |= BEHEMIRON_EFFEKSEER_FEATURE_VULKAN;
+    flags |= BEHEMIRON_EFFEKSEER_FEATURE_VULKAN_FRAME_API;
 #endif
     return flags;
 }
@@ -137,9 +139,11 @@ uint32_t be_effekseer_backend_get_capabilities()
     {
     case EffekseerCoreDeviceType::OpenGL:
         flags |= BEHEMIRON_EFFEKSEER_FEATURE_OPENGL;
+        flags |= BEHEMIRON_EFFEKSEER_FEATURE_OPENGL_FRAME_API;
         break;
     case EffekseerCoreDeviceType::Vulkan:
         flags |= BEHEMIRON_EFFEKSEER_FEATURE_VULKAN;
+        flags |= BEHEMIRON_EFFEKSEER_FEATURE_VULKAN_FRAME_API;
         break;
     case EffekseerCoreDeviceType::Unknown:
     default:
@@ -404,24 +408,6 @@ void be_effekseer_manager_set_effect_transform_base_matrix(
     }
 }
 
-// 绘制后景层。
-void be_effekseer_manager_draw_back(const BehemironEffekseerManagerHandle handle, const int32_t layer)
-{
-    if (const auto manager = ToManager(handle); manager != nullptr)
-    {
-        manager->DrawBack(layer);
-    }
-}
-
-// 绘制前景层。
-void be_effekseer_manager_draw_front(const BehemironEffekseerManagerHandle handle, const int32_t layer)
-{
-    if (const auto manager = ToManager(handle); manager != nullptr)
-    {
-        manager->DrawFront(layer);
-    }
-}
-
 // 设置实例 layer。
 void be_effekseer_manager_set_layer(const BehemironEffekseerManagerHandle handle, const int32_t effect_handle, const int32_t layer)
 {
@@ -618,99 +604,83 @@ void be_effekseer_manager_launch_worker_threads(const BehemironEffekseerManagerH
 
 // endregion
 
-// region Manager VK 接口
-
-// 开始 Vulkan 命令列表绑定。
-void be_effekseer_manager_begin_command_list_vk(const BehemironEffekseerManagerHandle handle, const uint64_t native_command_buffer)
-{
-    if (const auto manager = ToManager(handle); manager != nullptr)
-    {
-        manager->BeginVulkanCommandList(native_command_buffer);
-    }
-}
-
-// 结束 Vulkan 命令列表绑定。
-void be_effekseer_manager_end_command_list_vk(const BehemironEffekseerManagerHandle handle)
-{
-    if (const auto manager = ToManager(handle); manager != nullptr)
-    {
-        manager->EndVulkanCommandList();
-    }
-}
-
-// endregion
-
 // region Manager GL 接口
 
-// 设置 OpenGL 背景纹理。
-void be_effekseer_manager_set_background_gl(const BehemironEffekseerManagerHandle handle, const uint32_t glid, const int32_t has_mipmap)
+BehemironEffekseerOpenGLLoadStateHandle be_effekseer_gl_begin_load_state()
 {
-    if (const auto manager = ToManager(handle); manager != nullptr)
-    {
-        manager->SetBackground(glid, has_mipmap != 0);
-    }
+    return BeginEffekseerOpenGLLoadState();
 }
 
-// 设置 OpenGL 深度纹理。
-void be_effekseer_manager_set_depth_gl(const BehemironEffekseerManagerHandle handle, const uint32_t glid, const int32_t has_mipmap)
+void be_effekseer_gl_end_load_state(const BehemironEffekseerOpenGLLoadStateHandle handle)
+{
+    EndEffekseerOpenGLLoadState(static_cast<EffekseerOpenGLLoadStateCore*>(handle));
+}
+
+void be_effekseer_manager_render_gl(
+    const BehemironEffekseerManagerHandle handle,
+    const uint32_t target_fbo,
+    const int32_t width,
+    const int32_t height,
+    const uint32_t background_glid,
+    const int32_t background_has_mipmap,
+    const uint32_t depth_glid,
+    const int32_t depth_has_mipmap,
+    const int32_t layer,
+    const int32_t draw_back,
+    const int32_t draw_front)
 {
     if (const auto manager = ToManager(handle); manager != nullptr)
     {
-        manager->SetDepth(glid, has_mipmap != 0);
+        manager->RenderOpenGLFrame(
+            target_fbo,
+            width,
+            height,
+            background_glid,
+            background_has_mipmap != 0,
+            depth_glid,
+            depth_has_mipmap != 0,
+            layer,
+            draw_back != 0,
+            draw_front != 0);
     }
 }
 
 // endregion
 
-// region Manager VK 资源接口
+// region Manager VK 接口
 
-// 设置 Vulkan 背景图像。
-void be_effekseer_manager_set_background_vk(
+void be_effekseer_manager_render_vk(
     const BehemironEffekseerManagerHandle handle,
-    const uint64_t image,
-    const uint32_t aspect,
-    const uint32_t format)
+    const uint64_t native_command_buffer,
+    const uint64_t background_image,
+    const uint32_t background_aspect,
+    const uint32_t background_format,
+    const uint64_t depth_image,
+    const uint32_t depth_aspect,
+    const uint32_t depth_format,
+    const int32_t layer,
+    const int32_t draw_back,
+    const int32_t draw_front)
 {
     if (const auto manager = ToManager(handle); manager != nullptr)
     {
-        manager->SetBackgroundVulkan(image, aspect, format);
-    }
-}
-
-// 设置 Vulkan 深度图像。
-void be_effekseer_manager_set_depth_vk(
-    const BehemironEffekseerManagerHandle handle,
-    const uint64_t image,
-    const uint32_t aspect,
-    const uint32_t format)
-{
-    if (const auto manager = ToManager(handle); manager != nullptr)
-    {
-        manager->SetDepthVulkan(image, aspect, format);
+        manager->RenderVulkanFrame(
+            native_command_buffer,
+            background_image,
+            background_aspect,
+            background_format,
+            depth_image,
+            depth_aspect,
+            depth_format,
+            layer,
+            draw_back != 0,
+            draw_front != 0);
     }
 }
 
 // endregion
 
 // region Manager 共享渲染资源接口
-
-// 清除背景资源。
-void be_effekseer_manager_unset_background(const BehemironEffekseerManagerHandle handle)
-{
-    if (const auto manager = ToManager(handle); manager != nullptr)
-    {
-        manager->UnsetBackground();
-    }
-}
-
-// 清除深度资源。
-void be_effekseer_manager_unset_depth(const BehemironEffekseerManagerHandle handle)
-{
-    if (const auto manager = ToManager(handle); manager != nullptr)
-    {
-        manager->UnsetDepth();
-    }
-}
 
 // 获取实例粒子数。
 int32_t be_effekseer_manager_get_instance_count(const BehemironEffekseerManagerHandle handle, const int32_t effect_handle)

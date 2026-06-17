@@ -4,6 +4,11 @@
 #include <EffekseerRendererCommon/EffekseerRenderer.Renderer.h>
 
 class EffekseerEffectCore;
+class EffekseerOpenGLLoadStateCore;
+
+EffekseerOpenGLLoadStateCore *BeginEffekseerOpenGLLoadState();
+
+void EndEffekseerOpenGLLoadState(const EffekseerOpenGLLoadStateCore *state);
 
 // region Manager 封装
 
@@ -16,10 +21,24 @@ class EffekseerManagerCore {
     Effekseer::Backend::TextureRef backgroundtx_;
     Effekseer::Backend::TextureRef depthtx_;
     BehemironEffekseerCollisionCallback collisionCallback_ = nullptr;
-    void* collisionCallbackUserData_ = nullptr;
+    void *collisionCallbackUserData_ = nullptr;
 
     // 把当前保存的 C 风格碰撞回调重新挂到 Effekseer manager 上。
     void ApplyCollisionCallback() const;
+
+    void DrawLayer(int layer, bool drawBack, bool drawFront) const;
+
+    void SetBackground(uint32_t glid, bool hasMipmap);
+
+    void SetBackgroundVulkan(uint64_t image, uint32_t aspect, uint32_t format);
+
+    void UnsetBackground() const;
+
+    void SetDepth(uint32_t glid, bool hasMipmap);
+
+    void SetDepthVulkan(uint64_t image, uint32_t aspect, uint32_t format);
+
+    void UnsetDepth() const;
 
 public:
     EffekseerManagerCore() = default;
@@ -37,9 +56,9 @@ public:
 
     void UpdateHandleToMoveToFrame(int handle, float v) const;
 
-    int Play(const EffekseerEffectCore* effect) const;
+    int Play(const EffekseerEffectCore *effect) const;
 
-    int PlayWithOptions(const EffekseerEffectCore* effect,
+    int PlayWithOptions(const EffekseerEffectCore *effect,
                         float positionX,
                         float positionY,
                         float positionZ,
@@ -108,10 +127,6 @@ public:
                                       float v10,
                                       float v11) const;
 
-    void DrawBack(int layer = 0) const;
-
-    void DrawFront(int layer = 0) const;
-
     void SetLayer(int handle, int layer) const;
 
     void SetCameraParameter(float frontX, float frontY, float frontZ, float posX, float posY, float posZ) const;
@@ -159,26 +174,31 @@ public:
     float GetDynamicInput(int handle, int32_t index) const;
 
     // 设置世界碰撞查询回调，供上层把中立几何命中结果回传给 Effekseer。
-    void SetCollisionCallback(BehemironEffekseerCollisionCallback callback, void* userData);
+    void SetCollisionCallback(BehemironEffekseerCollisionCallback callback, void *userData);
 
     void LaunchWorkerThreads(int32_t n) const;
 
-    // 仅在 Vulkan backend 下有效，用于把外部命令缓冲绑定给 Effekseer。
-    void BeginVulkanCommandList(uint64_t nativeCommandBuffer) const;
+    void RenderOpenGLFrame(uint32_t targetFbo,
+                           int32_t width,
+                           int32_t height,
+                           uint32_t backgroundGlid,
+                           bool backgroundHasMipmap,
+                           uint32_t depthGlid,
+                           bool depthHasMipmap,
+                           int32_t layer,
+                           bool drawBack,
+                           bool drawFront);
 
-    void EndVulkanCommandList() const;
-
-    void SetBackground(uint32_t glid, bool hasMipmap);
-
-    void SetBackgroundVulkan(uint64_t image, uint32_t aspect, uint32_t format);
-
-    void UnsetBackground() const;
-
-    void SetDepth(uint32_t glid, bool hasMipmap);
-
-    void SetDepthVulkan(uint64_t image, uint32_t aspect, uint32_t format);
-
-    void UnsetDepth() const;
+    void RenderVulkanFrame(uint64_t nativeCommandBuffer,
+                           uint64_t backgroundImage,
+                           uint32_t backgroundAspect,
+                           uint32_t backgroundFormat,
+                           uint64_t depthImage,
+                           uint32_t depthAspect,
+                           uint32_t depthFormat,
+                           int32_t layer,
+                           bool drawBack,
+                           bool drawFront);
 
     int GetInstanceCount(int handle) const;
 

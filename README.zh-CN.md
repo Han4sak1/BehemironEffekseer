@@ -88,7 +88,7 @@
   - 查询依赖
   - 注入外部纹理 / 模型 / 材质 / 曲线
 - `EffekseerManager`
-  - update / play / control / draw
+  - update / play / control
   - typed 播放参数
   - batch API
   - collision callback
@@ -122,8 +122,18 @@ try (EffekseerGLManager manager = EffekseerGL.initializeAndCreateManager(8192, f
     manager.update(1.0f);
     manager.endUpdate();
 
-    manager.drawBack(0);
-    manager.drawFront(0);
+    manager.renderGL(
+            0,
+            1920,
+            1080,
+            0,
+            false,
+            0,
+            false,
+            0,
+            true,
+            true
+    );
 }
 ```
 
@@ -141,6 +151,12 @@ long device = /* 宿主 VkDevice 句柄 */;
 long queue = /* 宿主图形 VkQueue 句柄 */;
 long commandPool = /* 宿主 VkCommandPool 句柄 */;
 long commandBuffer = /* 宿主 VkCommandBuffer 句柄 */;
+long backgroundImage = 0L;
+int backgroundAspect = 0;
+int backgroundFormat = 0;
+long depthImage = 0L;
+int depthAspect = 0;
+int depthFormat = 0;
 
 VulkanRenderPassInfo renderPassInfo = new VulkanRenderPassInfo(
         true,
@@ -170,15 +186,23 @@ try (EffekseerVKManager manager = EffekseerVK.initializeAndCreateManager(
     manager.update(1.0f);
     manager.endUpdate();
 
-    manager.beginCommandListVK(commandBuffer);
     manager.play(effect);
-    manager.drawBack(0);
-    manager.drawFront(0);
-    manager.endCommandListVK();
+    manager.renderVK(
+            commandBuffer,
+            backgroundImage,
+            backgroundAspect,
+            backgroundFormat,
+            depthImage,
+            depthAspect,
+            depthFormat,
+            0,
+            true,
+            true
+    );
 }
 ```
 
-Vulkan 入口需要由宿主渲染器提供原始 Vulkan 句柄，以及当前 render pass 的格式信息。
+Vulkan 帧入口需要由宿主渲染器提供原始 Vulkan 句柄，以及当前 render pass 的格式信息。
 
 ## Typed 播放参数
 

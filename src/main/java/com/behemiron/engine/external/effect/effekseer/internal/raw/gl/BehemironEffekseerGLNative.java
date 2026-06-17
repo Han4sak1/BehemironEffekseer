@@ -35,22 +35,48 @@ public final class BehemironEffekseerGLNative {
     public static native @Cast("int32_t") int backendInitializeGL();
 
     /**
-     * 绑定 OpenGL 背景纹理。
+     * 开始隔离 OpenGL 加载态。
      *
-     * @param handle    Native manager 指针
-     * @param glid      OpenGL 纹理 ID
-     * @param hasMipmap 是否包含 mipmap
+     * @return Native 状态句柄
      */
-    @Name("be_effekseer_manager_set_background_gl")
-    public static native void managerSetBackgroundGL(Pointer handle, @Cast("uint32_t") int glid, @Cast("int32_t") int hasMipmap);
+    @Name("be_effekseer_gl_begin_load_state")
+    public static native Pointer glBeginLoadState();
 
     /**
-     * 绑定 OpenGL 深度纹理。
+     * 结束 OpenGL 加载态隔离。
      *
-     * @param handle    Native manager 指针
-     * @param glid      OpenGL 纹理 ID
-     * @param hasMipmap 是否包含 mipmap
+     * @param state Native 状态句柄
      */
-    @Name("be_effekseer_manager_set_depth_gl")
-    public static native void managerSetDepthGL(Pointer handle, @Cast("uint32_t") int glid, @Cast("int32_t") int hasMipmap);
+    @Name("be_effekseer_gl_end_load_state")
+    public static native void glEndLoadState(Pointer state);
+
+    /**
+     * 在指定 OpenGL FBO 上提交完整 Effekseer 帧。
+     *
+     * @param handle              Native manager 指针
+     * @param targetFbo           目标 FBO
+     * @param width               视口宽度
+     * @param height              视口高度
+     * @param backgroundGlid      背景纹理 ID，0 表示无
+     * @param backgroundHasMipmap 背景纹理是否包含 mipmap
+     * @param depthGlid           深度纹理 ID，0 表示无
+     * @param depthHasMipmap      深度纹理是否包含 mipmap
+     * @param layer               layer 索引
+     * @param drawBack            是否绘制后景
+     * @param drawFront           是否绘制前景
+     */
+    @Name("be_effekseer_manager_render_gl")
+    public static native void managerRenderGL(
+            Pointer handle,
+            @Cast("uint32_t") int targetFbo,
+            @Cast("int32_t") int width,
+            @Cast("int32_t") int height,
+            @Cast("uint32_t") int backgroundGlid,
+            @Cast("int32_t") int backgroundHasMipmap,
+            @Cast("uint32_t") int depthGlid,
+            @Cast("int32_t") int depthHasMipmap,
+            @Cast("int32_t") int layer,
+            @Cast("int32_t") int drawBack,
+            @Cast("int32_t") int drawFront
+    );
 }

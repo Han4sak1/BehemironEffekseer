@@ -7,6 +7,7 @@
 #if defined(BEHEMIRON_EFFEKSEER_HAS_GL)
 #include <EffekseerRendererGL.h>
 #include <EffekseerRendererGL/EffekseerRendererGL.DeviceObject.h>
+#include <EffekseerRendererGL/EffekseerRendererGL.GLExtension.h>
 #endif
 
 #ifdef __EFFEKSEER_BUILD_VULKAN__
@@ -14,10 +15,146 @@
 #include <EffekseerRendererVulkan.h>
 #endif
 
+#include <vector>
+
 // region 工具函数
 
+#if defined(BEHEMIRON_EFFEKSEER_HAS_GL)
+#ifndef GL_DRAW_FRAMEBUFFER
+#define GL_DRAW_FRAMEBUFFER 0x8CA9
+#endif
+#ifndef GL_READ_FRAMEBUFFER
+#define GL_READ_FRAMEBUFFER 0x8CA8
+#endif
+#ifndef GL_DRAW_FRAMEBUFFER_BINDING
+#define GL_DRAW_FRAMEBUFFER_BINDING 0x8CA6
+#endif
+#ifndef GL_READ_FRAMEBUFFER_BINDING
+#define GL_READ_FRAMEBUFFER_BINDING 0x8CAA
+#endif
+#ifndef GL_ACTIVE_TEXTURE
+#define GL_ACTIVE_TEXTURE 0x84E0
+#endif
+#ifndef GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS
+#define GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS 0x8B4D
+#endif
+#ifndef GL_SAMPLER_BINDING
+#define GL_SAMPLER_BINDING 0x8919
+#endif
+#ifndef GL_UNPACK_ROW_LENGTH
+#define GL_UNPACK_ROW_LENGTH 0x0CF2
+#endif
+#ifndef GL_UNPACK_SKIP_ROWS
+#define GL_UNPACK_SKIP_ROWS 0x0CF3
+#endif
+#ifndef GL_UNPACK_SKIP_PIXELS
+#define GL_UNPACK_SKIP_PIXELS 0x0CF4
+#endif
+#endif
+
 namespace {
-    void MatrixFromValues(::Effekseer::Matrix44 &matrix,
+#if defined(BEHEMIRON_EFFEKSEER_HAS_GL)
+    bool IsOpenGL3Family() {
+        const auto deviceType = EffekseerRendererGL::GLExt::GetDeviceType();
+        return deviceType == EffekseerRendererGL::OpenGLDeviceType::OpenGL3 ||
+               deviceType == EffekseerRendererGL::OpenGLDeviceType::OpenGLES3;
+    }
+
+    bool SupportsOpenGLSamplerObjects() {
+        return IsOpenGL3Family();
+    }
+
+    bool SupportsOpenGLFramebufferSplitBinding() {
+        return IsOpenGL3Family();
+    }
+
+    bool SupportsOpenGLPixelStoreRows() {
+        return EffekseerRendererGL::GLExt::GetDeviceType() != EffekseerRendererGL::OpenGLDeviceType::OpenGLES2;
+    }
+
+    std::vector<GLint> CaptureOpenGLSamplers() {
+        std::vector<GLint> samplers;
+        if (!SupportsOpenGLSamplerObjects()) {
+            return samplers;
+        }
+
+        GLint maxTextureUnits = 0;
+        glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+        if (maxTextureUnits <= 0) {
+            return samplers;
+        }
+
+        samplers.resize(static_cast<size_t>(maxTextureUnits));
+        for (GLint i = 0; i < maxTextureUnits; i++) {
+            EffekseerRendererGL::GLExt::glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(i));
+            glGetIntegerv(GL_SAMPLER_BINDING, &samplers[static_cast<size_t>(i)]);
+        }
+        return samplers;
+    }
+
+    void RestoreOpenGLSamplers(const std::vector<GLint> &samplers) {
+        if (samplers.empty()) {
+            return;
+        }
+
+        for (size_t i = 0; i < samplers.size(); i++) {
+            EffekseerRendererGL::GLExt::glBindSampler(static_cast<GLuint>(i), static_cast<GLuint>(samplers[i]));
+        }
+    }
+
+    class ScopedOpenGLDrawState {
+        bool splitFramebufferBinding_ = false;
+        GLint previousFramebuffer_ = 0;
+        GLint previousDrawFramebuffer_ = 0;
+        GLint previousReadFramebuffer_ = 0;
+        GLint previousViewport_[4] = {0, 0, 0, 0};
+        GLint previousActiveTexture_ = GL_TEXTURE0;
+        std::vector<GLint> previousSamplers_;
+
+    public:
+        ScopedOpenGLDrawState(const uint32_t targetFbo, const int32_t width, const int32_t height) {
+            splitFramebufferBinding_ = SupportsOpenGLFramebufferSplitBinding();
+            if (splitFramebufferBinding_) {
+                glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previousDrawFramebuffer_);
+                glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previousReadFramebuffer_);
+            } else {
+                glGetIntegerv(GL_FRAMEBUFFER_BINDING, &previousFramebuffer_);
+            }
+
+            glGetIntegerv(GL_VIEWPORT, previousViewport_);
+            glGetIntegerv(GL_ACTIVE_TEXTURE, &previousActiveTexture_);
+            previousSamplers_ = CaptureOpenGLSamplers();
+            EffekseerRendererGL::GLExt::glActiveTexture(static_cast<GLenum>(previousActiveTexture_));
+
+            EffekseerRendererGL::GLExt::glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(targetFbo));
+            glViewport(0, 0, width, height);
+        }
+
+        ~ScopedOpenGLDrawState() {
+            RestoreOpenGLSamplers(previousSamplers_);
+            EffekseerRendererGL::GLExt::glActiveTexture(static_cast<GLenum>(previousActiveTexture_));
+            glViewport(previousViewport_[0], previousViewport_[1], previousViewport_[2], previousViewport_[3]);
+
+            if (splitFramebufferBinding_) {
+                EffekseerRendererGL::GLExt::glBindFramebuffer(
+                    GL_DRAW_FRAMEBUFFER,
+                    static_cast<GLuint>(previousDrawFramebuffer_));
+                EffekseerRendererGL::GLExt::glBindFramebuffer(
+                    GL_READ_FRAMEBUFFER,
+                    static_cast<GLuint>(previousReadFramebuffer_));
+            } else {
+                EffekseerRendererGL::GLExt::glBindFramebuffer(GL_FRAMEBUFFER,
+                                                              static_cast<GLuint>(previousFramebuffer_));
+            }
+        }
+
+        ScopedOpenGLDrawState(const ScopedOpenGLDrawState &) = delete;
+
+        ScopedOpenGLDrawState &operator=(const ScopedOpenGLDrawState &) = delete;
+    };
+#endif
+
+    void MatrixFromValues(Effekseer::Matrix44 &matrix,
                           const float matrixArray0,
                           const float matrixArray1,
                           const float matrixArray2,
@@ -52,7 +189,7 @@ namespace {
         matrix.Values[3][3] = matrixArray15;
     }
 
-    void MatrixFromValues(::Effekseer::Matrix43 &matrix,
+    void MatrixFromValues(Effekseer::Matrix43 &matrix,
                           const float matrixArray0,
                           const float matrixArray1,
                           const float matrixArray2,
@@ -133,6 +270,79 @@ namespace {
         return drawParameter;
     }
 } // namespace
+
+class EffekseerOpenGLLoadStateCore {
+#if defined(BEHEMIRON_EFFEKSEER_HAS_GL)
+    bool hasVertexArray_ = false;
+    bool hasPixelStoreRows_ = false;
+    GLint previousVertexArray_ = 0;
+    GLint previousArrayBuffer_ = 0;
+    GLint previousElementArrayBuffer_ = 0;
+    GLint previousPackAlignment_ = 4;
+    GLint previousUnpackAlignment_ = 4;
+    GLint previousUnpackRowLength_ = 0;
+    GLint previousUnpackSkipRows_ = 0;
+    GLint previousUnpackSkipPixels_ = 0;
+#endif
+
+public:
+    EffekseerOpenGLLoadStateCore() {
+#if defined(BEHEMIRON_EFFEKSEER_HAS_GL)
+        hasVertexArray_ = EffekseerRendererGL::GLExt::IsSupportedVertexArray();
+        hasPixelStoreRows_ = SupportsOpenGLPixelStoreRows();
+
+        if (hasVertexArray_) {
+            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVertexArray_);
+        }
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previousArrayBuffer_);
+        glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &previousElementArrayBuffer_);
+        glGetIntegerv(GL_PACK_ALIGNMENT, &previousPackAlignment_);
+        glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment_);
+
+        if (hasPixelStoreRows_) {
+            glGetIntegerv(GL_UNPACK_ROW_LENGTH, &previousUnpackRowLength_);
+            glGetIntegerv(GL_UNPACK_SKIP_ROWS, &previousUnpackSkipRows_);
+            glGetIntegerv(GL_UNPACK_SKIP_PIXELS, &previousUnpackSkipPixels_);
+
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+            glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
+            glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+        }
+#endif
+    }
+
+    ~EffekseerOpenGLLoadStateCore() {
+#if defined(BEHEMIRON_EFFEKSEER_HAS_GL)
+        if (hasVertexArray_) {
+            EffekseerRendererGL::GLExt::glBindVertexArray(static_cast<GLuint>(previousVertexArray_));
+        }
+        EffekseerRendererGL::GLExt::glBindBuffer(GL_ARRAY_BUFFER, static_cast<GLuint>(previousArrayBuffer_));
+        EffekseerRendererGL::GLExt::glBindBuffer(
+            GL_ELEMENT_ARRAY_BUFFER,
+            static_cast<GLuint>(previousElementArrayBuffer_));
+
+        glPixelStorei(GL_PACK_ALIGNMENT, previousPackAlignment_);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, previousUnpackAlignment_);
+        if (hasPixelStoreRows_) {
+            glPixelStorei(GL_UNPACK_ROW_LENGTH, previousUnpackRowLength_);
+            glPixelStorei(GL_UNPACK_SKIP_ROWS, previousUnpackSkipRows_);
+            glPixelStorei(GL_UNPACK_SKIP_PIXELS, previousUnpackSkipPixels_);
+        }
+#endif
+    }
+
+    EffekseerOpenGLLoadStateCore(const EffekseerOpenGLLoadStateCore &) = delete;
+
+    EffekseerOpenGLLoadStateCore &operator=(const EffekseerOpenGLLoadStateCore &) = delete;
+};
+
+EffekseerOpenGLLoadStateCore *BeginEffekseerOpenGLLoadState() {
+    return new EffekseerOpenGLLoadStateCore();
+}
+
+void EndEffekseerOpenGLLoadState(const EffekseerOpenGLLoadStateCore *state) {
+    delete state;
+}
 
 // endregion
 
@@ -289,7 +499,7 @@ int EffekseerManagerCore::Play(const EffekseerEffectCore *effect) const {
         return -1;
     }
 
-    return manager_->Play(effect->GetInternal(), ::Effekseer::Vector3D());
+    return manager_->Play(effect->GetInternal(), Effekseer::Vector3D());
 }
 
 int EffekseerManagerCore::PlayWithOptions(const EffekseerEffectCore *effect,
@@ -309,9 +519,9 @@ int EffekseerManagerCore::PlayWithOptions(const EffekseerEffectCore *effect,
 
     Effekseer::Manager::PlayParameter parameter;
     parameter.Effect = effect->GetInternal();
-    parameter.Position = ::Effekseer::Vector3D(positionX, positionY, positionZ);
-    parameter.Rotation = ::Effekseer::Vector3D(rotationX, rotationY, rotationZ);
-    parameter.Scale = ::Effekseer::Vector3D(scaleX, scaleY, scaleZ);
+    parameter.Position = Effekseer::Vector3D(positionX, positionY, positionZ);
+    parameter.Rotation = Effekseer::Vector3D(rotationX, rotationY, rotationZ);
+    parameter.Scale = Effekseer::Vector3D(scaleX, scaleY, scaleZ);
     parameter.StartFrame = startFrame;
     return manager_->Play(parameter);
 }
@@ -397,7 +607,7 @@ void EffekseerManagerCore::SetLayerParameter(const int layer,
     }
 
     Effekseer::Manager::LayerParameter layerParameter;
-    layerParameter.ViewerPosition = ::Effekseer::Vector3D(viewerPosX, viewerPosY, viewerPosZ);
+    layerParameter.ViewerPosition = Effekseer::Vector3D(viewerPosX, viewerPosY, viewerPosZ);
     layerParameter.DistanceBias = distanceBias;
     manager_->SetLayerParameter(layer, layerParameter);
 }
@@ -419,7 +629,7 @@ void EffekseerManagerCore::SetEffectTransformMatrix(const int handle,
         return;
     }
 
-    auto m = ::Effekseer::Matrix43();
+    auto m = Effekseer::Matrix43();
     MatrixFromValues(m, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11);
     manager_->SetMatrix(handle, m);
 }
@@ -441,13 +651,13 @@ void EffekseerManagerCore::SetEffectTransformBaseMatrix(const int handle,
         return;
     }
 
-    auto m = ::Effekseer::Matrix43();
+    auto m = Effekseer::Matrix43();
     MatrixFromValues(m, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11);
     manager_->SetBaseMatrix(handle, m);
 }
 
-void EffekseerManagerCore::DrawBack(const int layer) const {
-    if (manager_ == nullptr || renderer_ == nullptr) {
+void EffekseerManagerCore::DrawLayer(const int layer, const bool drawBack, const bool drawFront) const {
+    if (manager_ == nullptr || renderer_ == nullptr || (!drawBack && !drawFront)) {
         return;
     }
 
@@ -455,20 +665,13 @@ void EffekseerManagerCore::DrawBack(const int layer) const {
         return;
     }
 
-    manager_->DrawBack(MakeLayerDrawParameter(renderer_, layer));
-    renderer_->EndRendering();
-}
-
-void EffekseerManagerCore::DrawFront(const int layer) const {
-    if (manager_ == nullptr || renderer_ == nullptr) {
-        return;
+    const auto drawParameter = MakeLayerDrawParameter(renderer_, layer);
+    if (drawBack) {
+        manager_->DrawBack(drawParameter);
     }
-
-    if (!renderer_->BeginRendering()) {
-        return;
+    if (drawFront) {
+        manager_->DrawFront(drawParameter);
     }
-
-    manager_->DrawFront(MakeLayerDrawParameter(renderer_, layer));
     renderer_->EndRendering();
 }
 
@@ -490,8 +693,8 @@ void EffekseerManagerCore::SetCameraParameter(const float frontX,
         return;
     }
 
-    const ::Effekseer::Vector3D pos = ::Effekseer::Vector3D(posX, posY, posZ);
-    const ::Effekseer::Vector3D front = ::Effekseer::Vector3D(frontX, frontY, frontZ);
+    const auto pos = Effekseer::Vector3D(posX, posY, posZ);
+    const auto front = Effekseer::Vector3D(frontX, frontY, frontZ);
     renderer_->SetCameraParameter(front, pos);
 }
 
@@ -515,7 +718,7 @@ void EffekseerManagerCore::SetProjectionMatrix(const float v0,
         return;
     }
 
-    Effekseer::Matrix44 m = ::Effekseer::Matrix44();
+    auto m = Effekseer::Matrix44();
     MatrixFromValues(m, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
     renderer_->SetProjectionMatrix(m);
 }
@@ -540,7 +743,7 @@ void EffekseerManagerCore::SetCameraMatrix(const float v0,
         return;
     }
 
-    auto m = ::Effekseer::Matrix44();
+    auto m = Effekseer::Matrix44();
     MatrixFromValues(m, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15);
     renderer_->SetCameraMatrix(m);
 }
@@ -552,13 +755,13 @@ void EffekseerManagerCore::SetViewProjectionMatrixWithSimpleWindow(const int32_t
     }
 
     renderer_->SetProjectionMatrix(
-        ::Effekseer::Matrix44().OrthographicRH(static_cast<float>(windowWidth), static_cast<float>(windowHeight), 1.0f,
+        Effekseer::Matrix44().OrthographicRH(static_cast<float>(windowWidth), static_cast<float>(windowHeight), 1.0f,
                                                400.0f));
 
-    renderer_->SetCameraMatrix(::Effekseer::Matrix44().LookAtRH(
-        ::Effekseer::Vector3D(windowWidth / 2.0f, windowHeight / 2.0f, 200.0f),
-        ::Effekseer::Vector3D(windowWidth / 2.0f, windowHeight / 2.0f, -200.0f),
-        ::Effekseer::Vector3D(0.0f, 1.0f, 0.0f)));
+    renderer_->SetCameraMatrix(Effekseer::Matrix44().LookAtRH(
+        Effekseer::Vector3D(windowWidth / 2.0f, windowHeight / 2.0f, 200.0f),
+        Effekseer::Vector3D(windowWidth / 2.0f, windowHeight / 2.0f, -200.0f),
+        Effekseer::Vector3D(0.0f, 1.0f, 0.0f)));
 }
 
 void EffekseerManagerCore::SetDynamicInput(const int handle, const int32_t index, const float value) const {
@@ -586,37 +789,6 @@ void EffekseerManagerCore::LaunchWorkerThreads(const int32_t n) const {
 // endregion
 
 // region Vulkan 绑定
-
-void EffekseerManagerCore::BeginVulkanCommandList(const uint64_t nativeCommandBuffer) const {
-#ifndef __EFFEKSEER_BUILD_VULKAN__
-    (void) nativeCommandBuffer;
-    return;
-#else
-    if (renderer_ == nullptr || EffekseerBackendCore::GetDevice() != EffekseerCoreDeviceType::Vulkan || commandList_ ==
-        nullptr ||
-        singleFrameMemoryPool_ == nullptr || nativeCommandBuffer == 0) {
-        return;
-    }
-
-    singleFrameMemoryPool_->NewFrame();
-    ::EffekseerRendererVulkan::BeginCommandList(commandList_, reinterpret_cast<VkCommandBuffer>(nativeCommandBuffer));
-    renderer_->SetCommandList(commandList_);
-#endif
-}
-
-void EffekseerManagerCore::EndVulkanCommandList() const {
-#ifndef __EFFEKSEER_BUILD_VULKAN__
-    return;
-#else
-    if (renderer_ == nullptr || EffekseerBackendCore::GetDevice() != EffekseerCoreDeviceType::Vulkan || commandList_ ==
-        nullptr) {
-        return;
-    }
-
-    renderer_->SetCommandList(nullptr);
-    ::EffekseerRendererVulkan::EndCommandList(commandList_);
-#endif
-}
 
 void EffekseerManagerCore::SetBackground(const uint32_t glid, const bool hasMipmap) {
 #if !defined(BEHEMIRON_EFFEKSEER_HAS_GL)
@@ -672,7 +844,9 @@ void EffekseerManagerCore::SetDepth(const uint32_t glid, const bool hasMipmap) {
 
     if (depthtx_ == nullptr) {
         depthtx_ = EffekseerRendererGL::CreateTexture(renderer_->GetGraphicsDevice(), glid, hasMipmap, nullptr);
-    } else {
+    }
+
+    if (depthtx_ != nullptr) {
         const auto texture = static_cast<EffekseerRendererGL::Backend::Texture *>(depthtx_.Get());
         texture->Init(glid, hasMipmap, nullptr);
     }
@@ -703,8 +877,102 @@ void EffekseerManagerCore::UnsetDepth() const {
         return;
     }
 
-    EffekseerRenderer::DepthReconstructionParameter params;
+    constexpr EffekseerRenderer::DepthReconstructionParameter params;
     renderer_->SetDepth(nullptr, params);
+}
+
+void EffekseerManagerCore::RenderOpenGLFrame(const uint32_t targetFbo,
+                                             const int32_t width,
+                                             const int32_t height,
+                                             const uint32_t backgroundGlid,
+                                             const bool backgroundHasMipmap,
+                                             const uint32_t depthGlid,
+                                             const bool depthHasMipmap,
+                                             const int32_t layer,
+                                             const bool drawBack,
+                                             const bool drawFront) {
+#if !defined(BEHEMIRON_EFFEKSEER_HAS_GL)
+    (void) targetFbo;
+    (void) width;
+    (void) height;
+    (void) backgroundGlid;
+    (void) backgroundHasMipmap;
+    (void) depthGlid;
+    (void) depthHasMipmap;
+    (void) layer;
+    (void) drawBack;
+    (void) drawFront;
+#else
+    if (manager_ == nullptr || renderer_ == nullptr || EffekseerBackendCore::GetDevice() != EffekseerCoreDeviceType::OpenGL ||
+        width <= 0 || height <= 0) {
+        return;
+    }
+
+    ScopedOpenGLDrawState state(targetFbo, width, height);
+
+    if (backgroundGlid == 0) {
+        UnsetBackground();
+    } else {
+        SetBackground(backgroundGlid, backgroundHasMipmap);
+    }
+
+    if (depthGlid == 0) {
+        UnsetDepth();
+    } else {
+        SetDepth(depthGlid, depthHasMipmap);
+    }
+
+    DrawLayer(layer, drawBack, drawFront);
+#endif
+}
+
+void EffekseerManagerCore::RenderVulkanFrame(const uint64_t nativeCommandBuffer,
+                                             const uint64_t backgroundImage,
+                                             const uint32_t backgroundAspect,
+                                             const uint32_t backgroundFormat,
+                                             const uint64_t depthImage,
+                                             const uint32_t depthAspect,
+                                             const uint32_t depthFormat,
+                                             const int32_t layer,
+                                             const bool drawBack,
+                                             const bool drawFront) {
+#ifndef __EFFEKSEER_BUILD_VULKAN__
+    (void) nativeCommandBuffer;
+    (void) backgroundImage;
+    (void) backgroundAspect;
+    (void) backgroundFormat;
+    (void) depthImage;
+    (void) depthAspect;
+    (void) depthFormat;
+    (void) layer;
+    (void) drawBack;
+    (void) drawFront;
+#else
+    if (manager_ == nullptr || renderer_ == nullptr || EffekseerBackendCore::GetDevice() != EffekseerCoreDeviceType::Vulkan ||
+        commandList_ == nullptr || singleFrameMemoryPool_ == nullptr || nativeCommandBuffer == 0) {
+        return;
+    }
+
+    singleFrameMemoryPool_->NewFrame();
+    ::EffekseerRendererVulkan::BeginCommandList(commandList_, reinterpret_cast<VkCommandBuffer>(nativeCommandBuffer));
+    renderer_->SetCommandList(commandList_);
+
+    if (backgroundImage == 0) {
+        UnsetBackground();
+    } else {
+        SetBackgroundVulkan(backgroundImage, backgroundAspect, backgroundFormat);
+    }
+
+    if (depthImage == 0) {
+        UnsetDepth();
+    } else {
+        SetDepthVulkan(depthImage, depthAspect, depthFormat);
+    }
+
+    DrawLayer(layer, drawBack, drawFront);
+    renderer_->SetCommandList(nullptr);
+    ::EffekseerRendererVulkan::EndCommandList(commandList_);
+#endif
 }
 
 // endregion

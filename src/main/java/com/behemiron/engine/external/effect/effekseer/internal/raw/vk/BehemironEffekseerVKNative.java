@@ -55,51 +55,32 @@ public final class BehemironEffekseerVKNative {
     );
 
     /**
-     * 开始把外部 Vulkan 命令缓冲绑定给 Effekseer。
+     * 在当前 Vulkan 命令缓冲上提交完整 Effekseer 帧。
      *
      * @param handle              Native manager 指针
      * @param nativeCommandBuffer Vulkan 命令缓冲句柄
+     * @param backgroundImage     背景图像句柄，0 表示无
+     * @param backgroundAspect    背景图像 aspect mask
+     * @param backgroundFormat    背景图像格式
+     * @param depthImage          深度图像句柄，0 表示无
+     * @param depthAspect         深度图像 aspect mask
+     * @param depthFormat         深度图像格式
+     * @param layer               layer 索引
+     * @param drawBack            是否绘制后景
+     * @param drawFront           是否绘制前景
      */
-    @Name("be_effekseer_manager_begin_command_list_vk")
-    public static native void managerBeginCommandListVK(Pointer handle, @Cast("uint64_t") long nativeCommandBuffer);
-
-    /**
-     * 结束当前 Vulkan 命令缓冲绑定。
-     *
-     * @param handle Native manager 指针
-     */
-    @Name("be_effekseer_manager_end_command_list_vk")
-    public static native void managerEndCommandListVK(Pointer handle);
-
-    /**
-     * 绑定 Vulkan 背景图像。
-     *
-     * @param handle Native manager 指针
-     * @param image  Vulkan 图像句柄
-     * @param aspect 图像 aspect mask
-     * @param format 图像格式
-     */
-    @Name("be_effekseer_manager_set_background_vk")
-    public static native void managerSetBackgroundVK(
+    @Name("be_effekseer_manager_render_vk")
+    public static native void managerRenderVK(
             Pointer handle,
-            @Cast("uint64_t") long image,
-            @Cast("uint32_t") int aspect,
-            @Cast("uint32_t") int format
-    );
-
-    /**
-     * 绑定 Vulkan 深度图像。
-     *
-     * @param handle Native manager 指针
-     * @param image  Vulkan 图像句柄
-     * @param aspect 图像 aspect mask
-     * @param format 图像格式
-     */
-    @Name("be_effekseer_manager_set_depth_vk")
-    public static native void managerSetDepthVK(
-            Pointer handle,
-            @Cast("uint64_t") long image,
-            @Cast("uint32_t") int aspect,
-            @Cast("uint32_t") int format
+            @Cast("uint64_t") long nativeCommandBuffer,
+            @Cast("uint64_t") long backgroundImage,
+            @Cast("uint32_t") int backgroundAspect,
+            @Cast("uint32_t") int backgroundFormat,
+            @Cast("uint64_t") long depthImage,
+            @Cast("uint32_t") int depthAspect,
+            @Cast("uint32_t") int depthFormat,
+            @Cast("int32_t") int layer,
+            @Cast("int32_t") int drawBack,
+            @Cast("int32_t") int drawFront
     );
 }

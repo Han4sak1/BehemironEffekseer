@@ -312,24 +312,6 @@ public final class BehemironEffekseerCommonNative {
     );
 
     /**
-     * 绘制后景层。
-     *
-     * @param handle Native manager 指针
-     * @param layer  layer 索引
-     */
-    @Name("be_effekseer_manager_draw_back")
-    public static native void managerDrawBack(Pointer handle, @Cast("int32_t") int layer);
-
-    /**
-     * 绘制前景层。
-     *
-     * @param handle Native manager 指针
-     * @param layer  layer 索引
-     */
-    @Name("be_effekseer_manager_draw_front")
-    public static native void managerDrawFront(Pointer handle, @Cast("int32_t") int layer);
-
-    /**
      * 设置实例所属 layer。
      *
      * @param handle       Native manager 指针
@@ -501,22 +483,6 @@ public final class BehemironEffekseerCommonNative {
      */
     @Name("be_effekseer_manager_launch_worker_threads")
     public static native void managerLaunchWorkerThreads(Pointer handle, @Cast("int32_t") int workerCount);
-
-    /**
-     * 清除当前背景资源绑定。
-     *
-     * @param handle Native manager 指针
-     */
-    @Name("be_effekseer_manager_unset_background")
-    public static native void managerUnsetBackground(Pointer handle);
-
-    /**
-     * 清除当前深度资源绑定。
-     *
-     * @param handle Native manager 指针
-     */
-    @Name("be_effekseer_manager_unset_depth")
-    public static native void managerUnsetDepth(Pointer handle);
 
     /**
      * 获取指定实例的粒子数量。

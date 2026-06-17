@@ -88,7 +88,7 @@ Public entry points:
   - inspect dependencies
   - inject external textures/models/materials/curves
 - `EffekseerManager`
-  - update, play, control, draw
+  - update, play, and instance control
   - typed play options
   - batch APIs
   - collision callback integration
@@ -122,8 +122,18 @@ try (EffekseerGLManager manager = EffekseerGL.initializeAndCreateManager(8192, f
     manager.update(1.0f);
     manager.endUpdate();
 
-    manager.drawBack(0);
-    manager.drawFront(0);
+    manager.renderGL(
+            0,
+            1920,
+            1080,
+            0,
+            false,
+            0,
+            false,
+            0,
+            true,
+            true
+    );
 }
 ```
 
@@ -141,6 +151,12 @@ long device = /* host VkDevice handle */;
 long queue = /* host graphics VkQueue handle */;
 long commandPool = /* host VkCommandPool handle */;
 long commandBuffer = /* host VkCommandBuffer handle */;
+long backgroundImage = 0L;
+int backgroundAspect = 0;
+int backgroundFormat = 0;
+long depthImage = 0L;
+int depthAspect = 0;
+int depthFormat = 0;
 
 VulkanRenderPassInfo renderPassInfo = new VulkanRenderPassInfo(
         true,
@@ -170,15 +186,23 @@ try (EffekseerVKManager manager = EffekseerVK.initializeAndCreateManager(
     manager.update(1.0f);
     manager.endUpdate();
 
-    manager.beginCommandListVK(commandBuffer);
     manager.play(effect);
-    manager.drawBack(0);
-    manager.drawFront(0);
-    manager.endCommandListVK();
+    manager.renderVK(
+            commandBuffer,
+            backgroundImage,
+            backgroundAspect,
+            backgroundFormat,
+            depthImage,
+            depthAspect,
+            depthFormat,
+            0,
+            true,
+            true
+    );
 }
 ```
 
-The Vulkan entry points expect raw host Vulkan handles and render-pass format metadata from your renderer integration.
+The Vulkan frame entry point expects raw host Vulkan handles and render-pass format metadata from your renderer integration.
 
 ## Typed Play Options
 

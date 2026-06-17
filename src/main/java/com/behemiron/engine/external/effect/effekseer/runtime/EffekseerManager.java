@@ -312,24 +312,6 @@ public class EffekseerManager implements AutoCloseable {
     }
 
     /**
-     * 绘制指定 layer 的后景特效。
-     *
-     * @param layer layer 索引
-     */
-    public void drawBack(int layer) {
-        BehemironEffekseerCommonNative.managerDrawBack(handle, layer);
-    }
-
-    /**
-     * 绘制指定 layer 的前景特效。
-     *
-     * @param layer layer 索引
-     */
-    public void drawFront(int layer) {
-        BehemironEffekseerCommonNative.managerDrawFront(handle, layer);
-    }
-
-    /**
      * 设置实例所属 layer。
      *
      * @param effectHandle 实例 handle
@@ -604,20 +586,6 @@ public class EffekseerManager implements AutoCloseable {
      */
     public void launchWorkerThreads(int workerCount) {
         BehemironEffekseerCommonNative.managerLaunchWorkerThreads(handle, workerCount);
-    }
-
-    /**
-     * 清除当前绑定的背景资源。
-     */
-    public void unsetBackground() {
-        BehemironEffekseerCommonNative.managerUnsetBackground(handle);
-    }
-
-    /**
-     * 清除当前绑定的深度资源。
-     */
-    public void unsetDepth() {
-        BehemironEffekseerCommonNative.managerUnsetDepth(handle);
     }
 
     /**

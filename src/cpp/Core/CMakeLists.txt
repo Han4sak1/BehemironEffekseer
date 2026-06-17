@@ -79,6 +79,11 @@ if(BUILD_VULKAN)
     EffekseerRendererLLGI
     EffekseerRendererVulkan
   )
+  target_compile_definitions(
+    EffekseerCore
+    PUBLIC
+    __EFFEKSEER_BUILD_VULKAN__
+  )
 endif()
 
 target_compile_features(EffekseerCore PUBLIC cxx_std_17)

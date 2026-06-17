@@ -10,7 +10,9 @@ public enum EffekseerFeature {
     EFFECT_DEPENDENCY_VIEW(1 << 3),
     TYPED_PLAY_OPTIONS(1 << 4),
     BATCH_API(1 << 5),
-    DIAGNOSTICS(1 << 6);
+    DIAGNOSTICS(1 << 6),
+    OPENGL_FRAME_API(1 << 7),
+    VULKAN_FRAME_API(1 << 8);
 
     private final int nativeMask;
 

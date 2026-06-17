@@ -26,6 +26,7 @@ extern "C" {
 
 typedef void* BehemironEffekseerManagerHandle;
 typedef void* BehemironEffekseerEffectHandle;
+typedef void* BehemironEffekseerOpenGLLoadStateHandle;
 
 // endregion
 
@@ -45,6 +46,8 @@ typedef enum BehemironEffekseerFeatureFlags {
     BEHEMIRON_EFFEKSEER_FEATURE_TYPED_PLAY_OPTIONS = 1 << 4,
     BEHEMIRON_EFFEKSEER_FEATURE_BATCH_API = 1 << 5,
     BEHEMIRON_EFFEKSEER_FEATURE_DIAGNOSTICS = 1 << 6,
+    BEHEMIRON_EFFEKSEER_FEATURE_OPENGL_FRAME_API = 1 << 7,
+    BEHEMIRON_EFFEKSEER_FEATURE_VULKAN_FRAME_API = 1 << 8,
 } BehemironEffekseerFeatureFlags;
 
 typedef enum BehemironEffekseerTextureType {
@@ -216,10 +219,6 @@ BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_set_effect_transform_base_matr
     float v10,
     float v11
 );
-// 绘制后景层。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_draw_back(BehemironEffekseerManagerHandle handle, int32_t layer);
-// 绘制前景层。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_draw_front(BehemironEffekseerManagerHandle handle, int32_t layer);
 // 设置实例 layer。
 BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_set_layer(
     BehemironEffekseerManagerHandle handle,
@@ -305,55 +304,48 @@ BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_launch_worker_threads(
 
 // region Manager GL 接口
 
-// 绑定 OpenGL 背景纹理。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_set_background_gl(
+// 开始隔离 OpenGL 加载态，并返回需要传回 end 的状态句柄。
+BEHEMIRON_EFFEKSEER_API BehemironEffekseerOpenGLLoadStateHandle be_effekseer_gl_begin_load_state(void);
+// 结束 OpenGL 加载态隔离并恢复现场。
+BEHEMIRON_EFFEKSEER_API void be_effekseer_gl_end_load_state(BehemironEffekseerOpenGLLoadStateHandle handle);
+// 在一个 OpenGL 目标 FBO 上提交完整 Effekseer 帧，并由 Native 层隔离 GL 状态。
+BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_render_gl(
     BehemironEffekseerManagerHandle handle,
-    uint32_t glid,
-    int32_t has_mipmap
-);
-// 绑定 OpenGL 深度纹理。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_set_depth_gl(
-    BehemironEffekseerManagerHandle handle,
-    uint32_t glid,
-    int32_t has_mipmap
+    uint32_t target_fbo,
+    int32_t width,
+    int32_t height,
+    uint32_t background_glid,
+    int32_t background_has_mipmap,
+    uint32_t depth_glid,
+    int32_t depth_has_mipmap,
+    int32_t layer,
+    int32_t draw_back,
+    int32_t draw_front
 );
 
 // endregion
 
 // region Manager VK 接口
 
-// 为 Vulkan backend 绑定外部命令缓冲。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_begin_command_list_vk(
+// 在当前 Vulkan 命令缓冲上提交完整 Effekseer 帧。
+BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_render_vk(
     BehemironEffekseerManagerHandle handle,
-    uint64_t native_command_buffer
-);
-// 结束当前 Vulkan 命令列表。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_end_command_list_vk(
-    BehemironEffekseerManagerHandle handle
-);
-// 绑定 Vulkan 背景图像。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_set_background_vk(
-    BehemironEffekseerManagerHandle handle,
-    uint64_t image,
-    uint32_t aspect,
-    uint32_t format
-);
-// 绑定 Vulkan 深度图像。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_set_depth_vk(
-    BehemironEffekseerManagerHandle handle,
-    uint64_t image,
-    uint32_t aspect,
-    uint32_t format
+    uint64_t native_command_buffer,
+    uint64_t background_image,
+    uint32_t background_aspect,
+    uint32_t background_format,
+    uint64_t depth_image,
+    uint32_t depth_aspect,
+    uint32_t depth_format,
+    int32_t layer,
+    int32_t draw_back,
+    int32_t draw_front
 );
 
 // endregion
 
 // region Manager 共享渲染资源接口
 
-// 清除当前背景资源绑定。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_unset_background(BehemironEffekseerManagerHandle handle);
-// 清除当前深度资源绑定。
-BEHEMIRON_EFFEKSEER_API void be_effekseer_manager_unset_depth(BehemironEffekseerManagerHandle handle);
 // 获取实例存活粒子数。
 BEHEMIRON_EFFEKSEER_API int32_t be_effekseer_manager_get_instance_count(
     BehemironEffekseerManagerHandle handle,
