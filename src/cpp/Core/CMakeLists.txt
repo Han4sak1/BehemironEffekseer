@@ -67,17 +67,20 @@ if(BUILD_GL)
 endif()
 
 if(BUILD_VULKAN)
+  find_package(Vulkan REQUIRED)
   target_include_directories(
     EffekseerCore
     PUBLIC
     ../Effekseer/Dev/Cpp/EffekseerRendererLLGI/
     ../Effekseer/Dev/Cpp/EffekseerRendererVulkan/
+    ${Vulkan_INCLUDE_DIRS}
   )
   target_link_libraries(
     EffekseerCore
     PUBLIC
     EffekseerRendererLLGI
     EffekseerRendererVulkan
+    ${Vulkan_LIBRARIES}
   )
   target_compile_definitions(
     EffekseerCore
