@@ -86,6 +86,17 @@ target_link_libraries(
   EffekseerCore
 )
 
+if(BUILD_VULKAN)
+  target_link_libraries(
+    BehemironEffekseerNative
+    PRIVATE
+    glslang
+    glslang-default-resource-limits
+    SPIRV
+    OSDependent
+  )
+endif()
+
 target_include_directories(
   BehemironEffekseerNative
   PRIVATE
