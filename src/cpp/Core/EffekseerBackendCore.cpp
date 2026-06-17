@@ -9,7 +9,7 @@
 #include <EffekseerRendererLLGI/Common.h>
 #include <EffekseerRendererLLGI/EffekseerRendererLLGI.MaterialLoader.h>
 #include <EffekseerRendererVulkan.h>
-#include <EffekseerRendererVulkan/EffekseerRendererVulkan/EffekseerMaterialCompilerVulkan.h>
+#include <EffekseerRendererVulkan/EffekseerMaterialCompilerVulkan.h>
 #endif
 
 #include <iostream>
