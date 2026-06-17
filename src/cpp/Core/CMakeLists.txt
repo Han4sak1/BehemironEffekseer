@@ -25,6 +25,7 @@ target_link_libraries(
   EffekseerCore
   PUBLIC
   Effekseer
+  EffekseerRendererCommon
 )
 
 if(BUILD_GL)

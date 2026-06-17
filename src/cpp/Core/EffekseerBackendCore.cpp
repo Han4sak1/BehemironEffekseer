@@ -1,5 +1,6 @@
 #include "EffekseerBackendCore.h"
 
+#include <EffekseerRendererCommon/EffekseerRenderer.Renderer.h>
 #include <EffekseerRendererCommon/TextureLoader.h>
 #if defined(BEHEMIRON_EFFEKSEER_HAS_GL)
 #include <EffekseerRendererGL.h>
@@ -120,7 +121,7 @@ public:
         if (deviceType_ == EffekseerCoreDeviceType::Vulkan) {
 #ifdef __EFFEKSEER_BUILD_VULKAN__
             internalLoader_ = Effekseer::MakeRefPtr<EffekseerRendererLLGI::MaterialLoader>(
-                graphicsDevice,
+                graphicsDevice.DownCast<EffekseerRendererLLGI::Backend::GraphicsDevice>(),
                 nullptr,
                 Effekseer::CompiledMaterialPlatformType::Vulkan,
                 new Effekseer::MaterialCompilerVulkan());
