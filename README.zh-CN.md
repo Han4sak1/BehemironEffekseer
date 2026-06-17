@@ -9,7 +9,7 @@
 
 ## 当前状态
 
-- Effekseer `1.80.4`
+- Effekseer `1.80.5`
 - Java `17+`
 - 稳定导出的 C ABI
 - CI 构建平台：
@@ -33,7 +33,7 @@
 <dependency>
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer</artifactId>
-    <version>0.1.0</version>
+    <version>{version}</version>
 </dependency>
 ```
 
@@ -51,7 +51,7 @@
 <dependency>
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer</artifactId>
-    <version>0.1.0</version>
+    <version>{version}</version>
     <classifier>windows-x86_64</classifier>
 </dependency>
 ```
@@ -62,7 +62,7 @@
 <dependency>
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer-platform</artifactId>
-    <version>0.1.0</version>
+    <version>{version}</version>
 </dependency>
 ```
 

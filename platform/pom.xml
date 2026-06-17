@@ -6,7 +6,7 @@
 
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer-platform</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <name>Behemiron Engine Effekseer Platform Bundle</name>
     <description>Platform aggregate artifact for The Behemiron Project's Effekseer JavaCPP bindings.</description>
     <url>https://github.com/Han4sak1/BehemironEffekseer</url>

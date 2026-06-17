@@ -9,7 +9,7 @@ Java bindings for the Behemiron Effekseer runtime, built on top of a stable C AB
 
 ## Status
 
-- Effekseer `1.80.4`
+- Effekseer `1.80.5`
 - Java `17+`
 - Stable exported C ABI
 - CI-built artifacts for:
@@ -33,7 +33,7 @@ Main artifact:
 <dependency>
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer</artifactId>
-    <version>0.1.0</version>
+    <version>{version}</version>
 </dependency>
 ```
 
@@ -51,7 +51,7 @@ Example:
 <dependency>
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer</artifactId>
-    <version>0.1.0</version>
+    <version>{version}</version>
     <classifier>windows-x86_64</classifier>
 </dependency>
 ```
@@ -62,7 +62,7 @@ Platform bundle artifact:
 <dependency>
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer-platform</artifactId>
-    <version>0.1.0</version>
+    <version>{version}</version>
 </dependency>
 ```
 
