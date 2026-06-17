@@ -73,6 +73,7 @@ if(BUILD_VULKAN)
     PUBLIC
     ../Effekseer/Dev/Cpp/EffekseerRendererLLGI/
     ../Effekseer/Dev/Cpp/EffekseerRendererVulkan/
+    ../Effekseer/Dev/Cpp/3rdParty/LLGI/src
     ${Vulkan_INCLUDE_DIRS}
   )
   target_link_libraries(
