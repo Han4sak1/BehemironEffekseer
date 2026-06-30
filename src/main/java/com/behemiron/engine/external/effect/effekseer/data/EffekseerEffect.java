@@ -6,6 +6,7 @@ import org.bytedeco.javacpp.Pointer;
 import org.bytedeco.javacpp.ShortPointer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -286,7 +287,7 @@ public final class EffekseerEffect implements AutoCloseable {
         for (int i = 0; i < count; i++) {
             dependencies.add(getDependency(i));
         }
-        return List.copyOf(dependencies);
+        return Collections.unmodifiableList(dependencies);
     }
 
     /**

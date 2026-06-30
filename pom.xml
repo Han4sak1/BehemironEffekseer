@@ -6,7 +6,7 @@
 
     <groupId>com.behemiron.engine</groupId>
     <artifactId>behemiron-effekseer</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <name>Behemiron Effekseer JavaCPP Preset</name>
     <description>JavaCPP-based Java bindings for The Behemiron Project's Effekseer runtime.</description>
     <url>https://github.com/Han4sak1/BehemironEffekseer</url>

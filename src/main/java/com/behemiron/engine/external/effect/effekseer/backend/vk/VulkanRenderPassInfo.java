@@ -6,7 +6,11 @@ import java.util.Objects;
 /**
  * 描述初始化 Vulkan backend 时所需的渲染通道信息。
  */
-public record VulkanRenderPassInfo(boolean doesPresentToScreen, int[] renderTextureFormats, int depthFormat) {
+public final class VulkanRenderPassInfo {
+
+    private final boolean doesPresentToScreen;
+    private final int[] renderTextureFormats;
+    private final int depthFormat;
 
     /**
      * 创建 Vulkan 渲染通道信息。
@@ -30,7 +34,6 @@ public record VulkanRenderPassInfo(boolean doesPresentToScreen, int[] renderText
      *
      * @return 是否直接输出到屏幕
      */
-    @Override
     public boolean doesPresentToScreen() {
         return doesPresentToScreen;
     }
@@ -40,7 +43,6 @@ public record VulkanRenderPassInfo(boolean doesPresentToScreen, int[] renderText
      *
      * @return 颜色附件格式数组副本
      */
-    @Override
     public int[] renderTextureFormats() {
         return Arrays.copyOf(renderTextureFormats, renderTextureFormats.length);
     }
@@ -59,8 +61,35 @@ public record VulkanRenderPassInfo(boolean doesPresentToScreen, int[] renderText
      *
      * @return 深度附件格式
      */
-    @Override
     public int depthFormat() {
         return depthFormat;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof VulkanRenderPassInfo that)) {
+            return false;
+        }
+        return doesPresentToScreen == that.doesPresentToScreen
+                && depthFormat == that.depthFormat
+                && Arrays.equals(renderTextureFormats, that.renderTextureFormats);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(doesPresentToScreen, depthFormat);
+        result = 31 * result + Arrays.hashCode(renderTextureFormats);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "VulkanRenderPassInfo[doesPresentToScreen=" + doesPresentToScreen
+                + ", renderTextureFormats=" + Arrays.toString(renderTextureFormats)
+                + ", depthFormat=" + depthFormat
+                + ']';
     }
 }

@@ -6,14 +6,17 @@ import java.util.Objects;
 
 /**
  * 表示一次特效播放时的 typed 参数。
- *
- * @param transform  初始变换
- * @param startFrame 起播帧
  */
-public record EffekseerPlayOptions(
-        EffekseerTransform transform,
-        int startFrame
-) {
+public final class EffekseerPlayOptions {
+
+    private final EffekseerTransform transform;
+    private final int startFrame;
+
+    public EffekseerPlayOptions(EffekseerTransform transform, int startFrame) {
+        this.transform = Objects.requireNonNull(transform, "transform");
+        this.startFrame = startFrame;
+    }
+
     /**
      * 返回默认播放参数。
      *
@@ -23,10 +26,32 @@ public record EffekseerPlayOptions(
         return new EffekseerPlayOptions(EffekseerTransform.identity(), 0);
     }
 
-    /**
-     * 构造时校验字段非空。
-     */
-    public EffekseerPlayOptions {
-        Objects.requireNonNull(transform, "transform");
+    public EffekseerTransform transform() {
+        return transform;
+    }
+
+    public int startFrame() {
+        return startFrame;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (!(other instanceof EffekseerPlayOptions that)) {
+            return false;
+        }
+        return startFrame == that.startFrame && transform.equals(that.transform);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(transform, startFrame);
+    }
+
+    @Override
+    public String toString() {
+        return "EffekseerPlayOptions[transform=" + transform + ", startFrame=" + startFrame + ']';
     }
 }
